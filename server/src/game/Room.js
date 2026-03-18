@@ -443,6 +443,9 @@ class Room {
     this.phaseTimer = setTimeout(() => {
       this.resolveSunrise(broadcast, sendToPlayerFn);
     }, TIMERS.SUNRISE);
+
+    // If no required sunrise roles are alive, resolve immediately.
+    this.tryCompleteSunriseEarly(broadcast, sendToPlayerFn);
   }
 
   /**
@@ -463,6 +466,45 @@ class Room {
 
     // Trigger bot sunrise actions
     BotManager.onPhaseStart(this, PHASES.SUNRISE);
+
+    // If no required sunrise roles are alive, resolve immediately.
+    this.tryCompleteSunriseEarly(broadcast, this._lastSendToPlayer);
+  }
+
+  /**
+   * Roles that must finish in sunrise before early completion is allowed.
+   */
+  getRequiredSunriseRoles() {
+    const needed = new Set();
+    const alive = this.getAlivePlayers();
+    if (alive.some(p => p.role === ROLES.ADMIN)) needed.add(ROLES.ADMIN);
+    if (alive.some(p => p.role === ROLES.SECURITY_LEAD)) needed.add(ROLES.SECURITY_LEAD);
+    return needed;
+  }
+
+  /**
+   * Attempt to complete sunrise immediately if all required roles are done.
+   * Works in SUNRISE and in NIGHT review (when injection happened).
+   */
+  tryCompleteSunriseEarly(broadcast, sendToPlayerFn) {
+    const reviewPhaseActive = this.phase === PHASES.SUNRISE || (this.phase === PHASES.NIGHT && this.nightActions?.hackerInjected);
+    if (!reviewPhaseActive) return false;
+
+    const needed = this.getRequiredSunriseRoles();
+    const allDone = [...needed].every(role => this.sunriseDone.has(role));
+    if (!allDone) return false;
+
+    this.resolveSunrise(broadcast, sendToPlayerFn || this._lastSendToPlayer);
+    return true;
+  }
+
+  /**
+   * Mark Admin/QA sunrise work as done and resolve early when all are done.
+   */
+  markSunriseDone(role, broadcast, sendToPlayerFn) {
+    if (role !== ROLES.ADMIN && role !== ROLES.SECURITY_LEAD) return false;
+    this.sunriseDone.add(role);
+    return this.tryCompleteSunriseEarly(broadcast, sendToPlayerFn);
   }
 
   /**

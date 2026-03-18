@@ -254,30 +254,11 @@ function registerHandlers(io, socket) {
     if (!player || !player.alive) return;
     if (player.role !== ROLES.ADMIN && player.role !== ROLES.SECURITY_LEAD) return;
 
-    room.sunriseDone.add(player.role);
-
-    // Determine which special roles are alive
-    const alive = room.getAlivePlayers();
-    const adminAlive = alive.some(p => p.role === ROLES.ADMIN);
-    const secAlive  = alive.some(p => p.role === ROLES.SECURITY_LEAD);
-    const needed = new Set();
-    if (adminAlive) needed.add(ROLES.ADMIN);
-    if (secAlive)   needed.add(ROLES.SECURITY_LEAD);
-
-    const allDone = [...needed].every(r => room.sunriseDone.has(r));
-    if (allDone) {
-      if (room.phase === PHASES.NIGHT) {
-        room.resolveSunrise(
-          (event, data) => broadcastToRoom(room.id, event, data),
-          (playerId, event, data) => io.to(playerId).emit(event, data)
-        );
-      } else {
-        room.skipPhase(
-          (event, data) => broadcastToRoom(room.id, event, data),
-          (playerId, event, data) => io.to(playerId).emit(event, data)
-        );
-      }
-    }
+    room.markSunriseDone(
+      player.role,
+      (event, data) => broadcastToRoom(room.id, event, data),
+      (playerId, event, data) => io.to(playerId).emit(event, data)
+    );
   });
 
   /* ──────────────────────────────────────────
@@ -536,6 +517,11 @@ function registerHandlers(io, socket) {
     const result = room.submitAdminBugGuess(socket.id, targetId, fileIdx, sendToPlayerFn);
     if (result && !result.error) {
       socket.emit(EVENTS.ADMIN_BUG_GUESS_RESULT, result);
+      room.markSunriseDone(
+        ROLES.ADMIN,
+        (event, data) => broadcastToRoom(room.id, event, data),
+        (playerId, event, data) => io.to(playerId).emit(event, data)
+      );
     } else if (result?.error === 'already_guessed') {
       socket.emit(EVENTS.ERROR, { message: 'You have already used your one bug-location guess this night.' });
     } else if (result?.error === 'not_corrupted') {
@@ -563,6 +549,11 @@ function registerHandlers(io, socket) {
           sendTo(targetId, EVENTS.CODE_FILES_INIT, { [targetId]: ownCode });
         }
       }
+      room.markSunriseDone(
+        ROLES.ADMIN,
+        (event, data) => broadcastToRoom(room.id, event, data),
+        (playerId, event, data) => io.to(playerId).emit(event, data)
+      );
     }
   });
 
@@ -581,6 +572,11 @@ function registerHandlers(io, socket) {
     console.log('[SEC-SCAN] targetId=%s result=%s', targetId, JSON.stringify(result));
     if (result) {
       socket.emit(EVENTS.SECURITY_SCAN_RESULT, result);
+      room.markSunriseDone(
+        ROLES.SECURITY_LEAD,
+        (event, data) => broadcastToRoom(room.id, event, data),
+        (playerId, event, data) => io.to(playerId).emit(event, data)
+      );
     }
   });
 
