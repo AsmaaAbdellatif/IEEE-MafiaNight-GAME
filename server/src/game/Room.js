@@ -25,11 +25,10 @@ const CONFIG = require('../shared/gameConfig');
 const TIMERS = CONFIG.TIMERS;
 
 function buildQaScanCodeFiles(isHacker, targetName, originalTargetFiles = []) {
-  const sanitizedName = String(targetName || 'Unknown').replace(/"/g, '\\"');
-  const targetFileName = `${String(targetName || 'player').replace(/\s+/g, '_')}.c`;
+  const targetFileName = 'attack.c';
   const verdictText = isHacker
-    ? `${sanitizedName} is a HACKER`
-    : `${sanitizedName} is NOT a Hacker`;
+    ? `This code is a HACKER file.`
+    : `This code is NOT a Hacker file.`;
 
   const verdictFile = {
     name: 'qa_verdict.c',
@@ -37,7 +36,7 @@ function buildQaScanCodeFiles(isHacker, targetName, originalTargetFiles = []) {
       '#include <stdio.h>',
       '',
       'int main(void) {',
-      `    printf("%s\\n", "${verdictText}");`,
+      `    printf("%s\n", "${verdictText}");`,
       '    return 0;',
       '}',
     ].join('\n'),
@@ -503,7 +502,7 @@ class Room {
         eliminated: { id: result.eliminated.id, name: result.eliminated.name, role: result.eliminated.role },
         adminKilled: result.adminKilled ? { id: result.adminKilled.id, name: result.adminKilled.name, role: result.adminKilled.role } : null,
         protectionSaved: false,
-        message: `${result.eliminated.name} was eliminated during the night!`,
+        message: `${result.eliminated.name} (${result.eliminated.role}) was eliminated during the night!`,
       });
       this.log.push({ sprint: this.sprint, phase: 'night', eliminated: result.eliminated.name, role: result.eliminated.role });
     } else if (result.protectionSaved) {
@@ -511,14 +510,14 @@ class Room {
         eliminated: null,
         adminKilled: result.adminKilled ? { id: result.adminKilled.id, name: result.adminKilled.name, role: result.adminKilled.role } : null,
         protectionSaved: true,
-        message: 'The Admin correctly identified the corrupted file and saved the targeted player! The hacker attack was blocked.',
+        message: `The Admin correctly identified the corrupted file and saved ${this.getPlayer(this.nightActions.adminProtectTarget)?.name || 'the targeted player'}! The hacker attack was blocked.`,
       });
     } else if (result.adminKilled) {
       broadcast(EVENTS.NIGHT_RESULT, {
         eliminated: null,
         adminKilled: { id: result.adminKilled.id, name: result.adminKilled.name, role: result.adminKilled.role },
         protectionSaved: false,
-        message: `${result.adminKilled.name} was wrongly terminated — the Admin pointed at the wrong file.`,
+        message: `${result.adminKilled.name} (${result.adminKilled.role}) was wrongly terminated — the Admin pointed at the wrong file.`,
       });
     } else if (this.nightActions.hackerInjected) {
       broadcast(EVENTS.NIGHT_RESULT, {

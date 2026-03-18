@@ -11,9 +11,9 @@ module.exports = {
    *  Phase Timers (milliseconds)
    * ═══════════════════════════════════════════ */
   TIMERS: {
-    DISCUSSION: 60000,   // 60 s  – day discussion
-    VOTING:    45000,    // 45 s  – voting phase
-    DEFENSE:   20000,    // 20 s  – accused player's defence
+    DISCUSSION: 420000,   // 7 min  – day discussion
+    VOTING:    60000,    // 1 min  – voting phase
+    DEFENSE:   120000,   // 2 min  – accused player's defence
     NIGHT:     300000,    // 5 min – night actions (hackers)
     SUNRISE:   180000,    // 3 min – sunrise actions (admin + QA)
   },

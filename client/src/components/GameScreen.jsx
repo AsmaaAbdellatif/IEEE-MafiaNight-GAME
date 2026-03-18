@@ -293,24 +293,6 @@ export default function GameScreen({
               {myRole === ROLES.ADMIN && amAlive && (
                 <div className="space-y-3">
 
-                  {/* Header banner — attack detected */}
-                  <div className="cyber-card border-red-500/40 bg-red-950/30 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-red-900/10 via-transparent to-red-900/10 animate-pulse pointer-events-none" />
-                    <div className="flex items-center gap-3 relative">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-900/40 border border-red-500/50 flex items-center justify-center">
-                        <AlertTriangle size={20} className="text-red-400 animate-pulse" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-red-400 tracking-wide flex items-center gap-2">
-                          ATTACK DETECTED — ADMIN REVIEW
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-900/50 border border-red-500/40 text-red-300 uppercase tracking-widest font-mono animate-pulse">Sunrise</span>
-                        </h3>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          The hacker has corrupted a developer's code. Review and fix the attack to save them.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
 
                   {!adminScanResult && (isSunrise || isNightReview) && (
                     <div className="p-4 rounded-lg border-2 border-dashed border-red-500/30 bg-red-950/20 text-center animate-fade-in space-y-3">
@@ -338,27 +320,7 @@ export default function GameScreen({
 
                   {adminScanResult?.corrupted && (
                     <div className="space-y-3 animate-slide-up">
-                      {/* Corrupted target info banner */}
-                      <div className="cyber-card border-red-500/50 bg-gradient-to-b from-red-950/40 to-red-950/20 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent" />
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Skull size={16} className="text-red-400" />
-                            <div>
-                              <p className="text-xs text-red-400 font-bold uppercase tracking-wider">Corrupted File Detected</p>
-                              <p className="text-sm text-gray-300 mt-0.5">
-                                Target: <span className="text-red-300 font-bold">{adminScanResult.targetName}</span>
-                                {adminScanResult.files?.[0]?.name && (
-                                  <span className="text-gray-500"> — <span className="font-mono text-red-300/80">{adminScanResult.files[0].name}</span></span>
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                          <span className="text-[9px] px-2 py-1 rounded border border-red-500/40 bg-red-900/40 text-red-300 font-mono uppercase tracking-widest">
-                            Damaged
-                          </span>
-                        </div>
-                      </div>
+                      {/* Only show code file and options below */}
 
                       {/* Corrupted code display — no scroll, like hacker code view */}
                       {adminScanResult.files?.length > 0 && (
@@ -367,7 +329,7 @@ export default function GameScreen({
                             <div key={fIdx} className="rounded-t-lg border-2 border-red-500/30 overflow-hidden bg-[#0d1117] shadow-lg shadow-red-900/10">
                               <div className="px-3 py-1.5 bg-red-950/40 border-b border-red-500/20 flex items-center justify-between">
                                 <span className="text-[11px] font-mono text-red-300 flex items-center gap-1.5">
-                                  <File size={11} className="text-red-400" /> {file.name}
+                                  <File size={11} className="text-red-400" /> attack.c
                                 </span>
                                 <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-900/50 border border-red-500/40 text-red-300 font-bold uppercase tracking-widest flex items-center gap-1">
                                   <AlertTriangle size={9} /> Corrupted

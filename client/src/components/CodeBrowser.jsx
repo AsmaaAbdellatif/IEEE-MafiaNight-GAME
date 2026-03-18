@@ -509,33 +509,21 @@ export default function CodeBrowser({
                   {/* ═══ Hacker: Injection options below the code ═══ */}
                   {myRole === ROLES.HACKER && isNight && selectedPlayerId !== myId && !alreadyInjected && (
                     <div className="mt-3">
-                      <button
-                        onClick={() => setShowInjectPanel(!showInjectPanel)}
-                        className="w-full text-center text-[12px] font-bold text-red-400 hover:text-red-300 px-3 py-2.5 rounded-lg bg-red-900/15 border-2 border-red-500/30 hover:border-red-500/50 hover:bg-red-900/25 flex items-center justify-center gap-2 transition-all shadow-md"
-                      >
-                        <Syringe size={14} />
-                        {showInjectPanel ? '▲ Hide Injection Options' : `▼ Show Injection Options (${injectionOptions.reduce((sum, o) => sum + o.patches.length, 0)} bugs available)`}
-                      </button>
-
-                      {showInjectPanel && (
-                        <div className="mt-2 space-y-1.5 p-2">
-                          {injectionOptions.length === 0 ? (
-                            <p className="text-xs text-gray-500 p-3 text-center">No injection options available for this player's code.</p>
-                          ) : (
-                            injectionOptions.flatMap((opt) =>
-                              opt.patches.map((patch, i) => (
-                                <button
-                                  key={`${opt.fileIdx}-${i}`}
-                                  onClick={() => onHackerInjectVote?.(opt.fileIdx, patch.patchIdx)}
-                                  className="w-full text-left text-xs px-3 py-2.5 rounded-lg border border-red-500/25 bg-red-900/10 text-red-300 hover:bg-red-900/30 hover:border-red-500/50 transition-all flex items-center gap-2 shadow-sm"
-                                >
-                                  <span className="text-red-500 flex-shrink-0"><Zap size={14} /></span>
-                                  <span>{patch.desc}</span>
-                                </button>
-                              ))
-                            )
-                          )}
-                        </div>
+                      {injectionOptions.length === 0 ? (
+                        <p className="text-xs text-gray-500 p-3 text-center">No injection options available for this player's code.</p>
+                      ) : (
+                        injectionOptions.flatMap((opt) =>
+                          opt.patches.map((patch, i) => (
+                            <button
+                              key={`${opt.fileIdx}-${i}`}
+                              onClick={() => onHackerInjectVote?.(opt.fileIdx, patch.patchIdx)}
+                              className="w-full text-left text-xs px-3 py-2.5 rounded-lg border border-red-500/25 bg-red-900/10 text-red-300 hover:bg-red-900/30 hover:border-red-500/50 transition-all flex items-center gap-2 shadow-sm"
+                            >
+                              <span className="text-red-500 flex-shrink-0"><Zap size={14} /></span>
+                              <span>{patch.desc}</span>
+                            </button>
+                          ))
+                        )
                       )}
                     </div>
                   )}
