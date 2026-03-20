@@ -96,7 +96,18 @@ class Room {
     this.voteRoundInSprint = 0; // how many vote rounds within current sprint
 
     // Night action collection
-    this.nightActions = { hackerTarget: null, adminTarget: null, securityTargets: [] };
+    this.nightActions = {
+      hackerTarget: null,
+      hackerInjected: false,
+      adminProtectTarget: null,
+      adminKillTarget: null,
+      adminCorrectFixIndex: null,
+      adminBugGuessUsed: false,
+      adminRepairs: [],
+      securityTargets: [],
+      adminViews: new Set(),
+      securityViews: new Set(),
+    };
     this.hackerVotes = new Map(); // hackerId → targetId (hackers vote on target)
 
     // Timers
@@ -394,8 +405,9 @@ class Room {
     this.nightActions = {
       hackerTarget: null,
       hackerInjected: false,
-      adminProtectTarget: null,   // set when admin correctly guesses corrupted file
-      adminKillTarget: null,      // set when admin incorrectly guesses corrupted file
+      adminProtectTarget: null,   // set when admin correctly fixes corrupted file
+      adminKillTarget: null,      // set when admin incorrectly fixes corrupted file
+      adminCorrectFixIndex: null, // server-side answer key; stored after scan, never sent to client
       adminBugGuessUsed: false,   // admin only gets one guess per night
       adminRepairs: [],
       securityTargets: [],
@@ -867,8 +879,10 @@ class Room {
         this.nightActions.adminProtectTarget = targetId;
         this.nightActions.adminRepairs.push(targetId);
       } else if (!repairResult.correct && repairResult.wasCorrupted) {
-        // Wrong fix — the target player will be eliminated
-        this.nightActions.adminKillTarget = targetId;
+        // Wrong fix — the hacker's actual target is eliminated.
+        // Always use nightActions.hackerTarget (authoritative) rather than the
+        // client-supplied targetId so the right player dies regardless of payload.
+        this.nightActions.adminKillTarget = this.nightActions.hackerTarget || targetId;
       }
       return {
         targetId,

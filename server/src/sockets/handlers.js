@@ -551,8 +551,22 @@ function registerHandlers(io, socket) {
     const reviewPhaseActive = room && (room.phase === PHASES.SUNRISE || (room.phase === PHASES.NIGHT && room.nightActions?.hackerInjected));
     if (!room || !room.codeStore || !reviewPhaseActive) return;
 
-    // Use server-stored correctFixIndex (not client-provided)
+    // Guard: admin must have scanned first so we have a stored correctFixIndex.
+    // Without it, we cannot evaluate the answer — reject instead of silently auto-repairing.
     const correctFixIndex = room.nightActions.adminCorrectFixIndex;
+    if (typeof correctFixIndex !== 'number') {
+      socket.emit(EVENTS.ERROR, { message: 'Scan the corrupted code before attempting a repair.' });
+      return;
+    }
+
+    // Guard: admin may only repair the player actually targeted by hackers this night.
+    // Prevents a malformed payload from killing or protecting the wrong player.
+    const hackerTarget = room.nightActions.hackerTarget;
+    if (!hackerTarget || targetId !== hackerTarget) {
+      socket.emit(EVENTS.ERROR, { message: 'You can only repair the player targeted by hackers this night.' });
+      return;
+    }
+
     const result = room.submitAdminRepair(socket.id, targetId, fixIndex, correctFixIndex, sendToPlayerFn);
     if (result) {
       socket.emit(EVENTS.ADMIN_REPAIR_RESULT, result);

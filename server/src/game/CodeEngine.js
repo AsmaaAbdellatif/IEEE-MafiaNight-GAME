@@ -703,6 +703,29 @@ class CodeEngine {
       }
     }
 
+    // Validate: exactly one correct fix must exist.
+    // If the applied patch isn't in the template list (shouldn't happen), add it explicitly
+    // so it is never possible for all options to be wrong.
+    if (correctFixIndex === -1) {
+      console.error(
+        '[CodeEngine] WARNING: correct fix option not found for target', targetId,
+        '— patch:', appliedPatch?.find, '->', appliedPatch?.replace,
+        '— injecting guaranteed correct option.'
+      );
+      if (appliedPatch) {
+        correctFixIndex = fixOptions.length;
+        fixOptions.push({
+          fixIndex: fixOptions.length,
+          label: `Replace \`${appliedPatch.replace}\` with \`${appliedPatch.find}\``,
+        });
+      }
+    }
+
+    // Sanity check: exactly one correct option
+    if (correctFixIndex === -1 || correctFixIndex >= fixOptions.length) {
+      console.error('[CodeEngine] CRITICAL: could not guarantee a correct fix option for', targetId);
+    }
+
     // Shuffle fix options but track the correct index
     const shuffled = CodeEngine._shuffleWithTracking(fixOptions, correctFixIndex);
 
