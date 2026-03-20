@@ -232,6 +232,8 @@ export default function GameScreen({
             onSkipPhase={onSkipPhase}
             hasSkipped={hasSkipped}
             amAlive={amAlive}
+            skipCount={skipCount}
+            totalAliveForSkip={totalAliveForSkip}
           />
 
           

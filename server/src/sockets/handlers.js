@@ -279,19 +279,17 @@ function registerHandlers(io, socket) {
     const alivePlayers = room.getAlivePlayers();
     // Bots always agree to skip — only real players need to vote
     const realAlive = alivePlayers.filter(p => !p.isBot).length;
-    const majorityNeeded = Math.floor(realAlive / 2) + 1;
     broadcastToRoom(room.id, EVENTS.SKIP_UPDATE, {
       skipCount: room.skipVotes.size,
       totalAlive: realAlive,
-      majorityNeeded,
     });
 
-    // If majority (>50%) of real alive players voted to skip, advance phase
+    // All real alive players must vote to skip (unanimous consensus)
     const realSkips = [...room.skipVotes].filter(id => {
       const p = room.getPlayer(id);
       return p && !p.isBot;
     }).length;
-    if (realSkips >= majorityNeeded) {
+    if (realSkips >= realAlive) {
       room.skipPhase((event, data) => broadcastToRoom(room.id, event, data),
         (playerId, event, data) => io.to(playerId).emit(event, data));
     }

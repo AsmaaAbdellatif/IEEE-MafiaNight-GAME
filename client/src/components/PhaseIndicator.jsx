@@ -8,7 +8,8 @@ import { Sun, Vote, Shield, Moon, Sunrise, Flag } from 'lucide-react';
  */
 export default function PhaseIndicator({ phase, sprint, systemStability, advancedMode, message, phaseEndTime,
   // optional skip controls
-  showSkip, onSkipPhase, hasSkipped, amAlive, timerEnabled = true
+  showSkip, onSkipPhase, hasSkipped, amAlive, timerEnabled = true,
+  skipCount = 0, totalAliveForSkip = 0
 }) {
   const [timeLeft, setTimeLeft] = useState(0);
   const intervalRef = useRef(null);
@@ -77,21 +78,28 @@ export default function PhaseIndicator({ phase, sprint, systemStability, advance
             </div>
           )}
 
-          {/* compact Skip button next to the timer */}
+          {/* compact Skip button + unanimous vote counter */}
           {showSkip && amAlive && (
-            <div>
+            <div className="flex flex-col items-end gap-0.5">
               <button
                 onClick={onSkipPhase}
                 disabled={hasSkipped}
-                title={hasSkipped ? 'You are ready to skip' : 'Skip'}
+                title={hasSkipped ? 'Waiting for all players to agree' : 'Vote to skip (all players must agree)'}
                 className={`text-[12px] px-3 py-0.5 rounded-full transition-all ${
                   hasSkipped
                     ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                     : 'bg-cyber-blue/20 border border-cyber-blue/40 text-cyber-blue hover:bg-cyber-blue/30'
                 }`}
               >
-                Skip
+                {hasSkipped ? 'Waiting...' : 'Skip'}
               </button>
+              {totalAliveForSkip > 0 && (
+                <span className={`text-[10px] font-mono ${
+                  skipCount === totalAliveForSkip ? 'text-cyber-green' : 'text-gray-500'
+                }`}>
+                  {skipCount}/{totalAliveForSkip} ready
+                </span>
+              )}
             </div>
           )}
 
