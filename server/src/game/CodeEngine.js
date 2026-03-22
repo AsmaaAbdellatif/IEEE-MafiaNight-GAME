@@ -36,16 +36,6 @@ void broadcast_emergency_signal(int *alert_counter, int target_alerts) {
         printf("\u{1F6A8} [EMERGENCY]: SYSTEM BREACH DETECTED! BROADCASTING ALERT to IEEE Members...\\n");
         (*alert_counter)++;
     }
-}
-
-int main() {
-    int current_alerts = 0;
-    int target_alerts = 3;
-
-    broadcast_emergency_signal(&current_alerts, target_alerts);
-    printf("\\nFinished! Total alerts broadcasted: %d\\n", current_alerts);
-
-    return 0;
 }`,
   },
   {
@@ -60,7 +50,7 @@ void decrypt_intercepted_message(char *encrypted_msg) {
     int left = 0;
     int right = strlen(encrypted_msg) - 1;
     char temp;
-    
+
     while (left < right) {
         temp = encrypted_msg[left];
         encrypted_msg[left] = encrypted_msg[right];
@@ -68,13 +58,6 @@ void decrypt_intercepted_message(char *encrypted_msg) {
         left++;
         right--;
     }
-}
-
-int main() {
-    char encrypted_msg[] = "Birzeit";
-    decrypt_intercepted_message(encrypted_msg);
-    printf("Decrypted Message: %s\\n", encrypted_msg);
-    return 0;
 }`,
   },
   {
@@ -93,17 +76,6 @@ int validate_rsa_key(int rsa_key) {
             return 0;
     }
     return 1;
-}
-
-int main() {
-    int key_value = 29;
-
-    if (validate_rsa_key(key_value)) {
-        printf("RSA Key %d is VALID. Secure connection established.\\n", key_value);
-    } else {
-        printf("RSA Key %d is COMPROMISED. Connection terminated.\\n", key_value);
-    }
-    return 0;
 }`,
   },
   {
@@ -121,17 +93,6 @@ int verify_system_integrity(int system_id) {
         }
     }
     return (integrity_score == system_id);
-}
-
-int main() {
-    int system_id = 28;
-    
-    if (verify_system_integrity(system_id)) {
-        printf("System core %d is PERFECT. Integrity verified.\\n", system_id);
-    } else {
-        printf("System core %d is CORRUPTED. Integrity failed.\\n", system_id);
-    }
-    return 0;
 }`,
   },
   {
@@ -149,13 +110,6 @@ int identify_main_target(int network_nodes[], int node_count) {
         }
     }
     return max_threat;
-}
-
-int main() {
-    int network_nodes[] = {12, 45, 7, 89, 23};
-    int node_count = sizeof(network_nodes) / sizeof(network_nodes[0]);
-    printf("CRITICAL: The highest threat node is: %d\\n", identify_main_target(network_nodes, node_count));
-    return 0;
 }`,
   },
   {
@@ -171,12 +125,6 @@ long long calculate_encryption_combinations(int key_length) {
         combinations *= i;
     }
     return combinations;
-}
-
-int main() {
-    int key_length = 5;
-    printf("Total combinations for key length %d = %lld\\n", key_length, calculate_encryption_combinations(key_length));
-    return 0;
 }`,
   },
   {
@@ -205,12 +153,6 @@ void encrypt_to_binary(int data_packet) {
         printf("%d", binary_stream[j]);
     }
     printf("\\n");
-}
-
-int main() {
-    int packet = 17;
-    encrypt_to_binary(packet);
-    return 0;
 }`,
   },
   {
@@ -230,21 +172,6 @@ void sort_threat_levels(int threats[], int size) {
             }
         }
     }
-}
-
-int main() {
-    int threats[] = {64, 34, 25, 12, 22, 11, 90};
-    int size = 7;
-
-    sort_threat_levels(threats, size);
-    
-    printf("Threat levels prioritized: ");
-    for (int i = 0; i < size; i++) {
-        printf("%d ", threats[i]);
-    }
-    printf("\\n");
-
-    return 0;
 }`,
   },
 ];
@@ -266,17 +193,6 @@ int exploit_buffer(char *target, int port) {
     memset(payload, 0x41, sizeof(payload));
     printf("Sending payload to %s:%d\\n", target, port);
     return 0;
-}
-
-/* Performs a simple ping check. */
-int ping_host(const char *host) {
-    printf("Pinging %s ...\\n", host);
-    return 1;
-}
-
-int main() {
-    ping_host("192.168.1.1");
-    return 0;
 }`,
     suspiciousFunctions: ['exploit_buffer'],
   },
@@ -289,21 +205,6 @@ int main() {
 int rootkit_load(const char *module_path) {
     printf("Loading module: %s\\n", module_path);
     return system(module_path);
-}
-
-/* Gets the current system uptime. */
-int get_uptime() {
-    FILE *fp = fopen("/proc/uptime", "r");
-    if (!fp) return -1;
-    int uptime;
-    fscanf(fp, "%d", &uptime);
-    fclose(fp);
-    return uptime;
-}
-
-int main() {
-    printf("Uptime: %d seconds\\n", get_uptime());
-    return 0;
 }`,
     suspiciousFunctions: ['rootkit_load'],
   },
@@ -312,25 +213,9 @@ int main() {
     code: `#include <stdio.h>
 #include <string.h>
 
-/* XOR encrypt/decrypt a buffer with a key. */
-void xor_cipher(char *data, int len, char key) {
-    for (int i = 0; i < len; i++) {
-        data[i] ^= key;
-    }
-}
-
 /* Installs a backdoor listener on the given port. */
 int backdoor_connect(int port) {
     printf("Listening on port %d\\n", port);
-    return 0;
-}
-
-int main() {
-    char msg[] = "secret";
-    xor_cipher(msg, strlen(msg), 0x42);
-    printf("Encrypted: %s\\n", msg);
-    xor_cipher(msg, strlen(msg), 0x42);
-    printf("Decrypted: %s\\n", msg);
     return 0;
 }`,
     suspiciousFunctions: ['backdoor_connect'],
@@ -341,32 +226,10 @@ int main() {
 #include <stdlib.h>
 #include <string.h>
 
-/* Allocates and zeroes a block of memory. */
-void *safe_alloc(size_t size) {
-    void *ptr = malloc(size);
-    if (ptr) memset(ptr, 0, size);
-    return ptr;
-}
-
 /* Injects shellcode into a memory region. */
 int inject_shellcode(void *addr, const char *code, int len) {
     memcpy(addr, code, len);
     printf("Payload written at %p\\n", addr);
-    return 0;
-}
-
-/* Frees memory safely and nulls the pointer. */
-void safe_free(void **ptr) {
-    if (ptr && *ptr) {
-        free(*ptr);
-        *ptr = NULL;
-    }
-}
-
-int main() {
-    char *buf = (char *)safe_alloc(64);
-    printf("Allocated: %p\\n", buf);
-    safe_free((void **)&buf);
     return 0;
 }`,
     suspiciousFunctions: ['inject_shellcode'],
@@ -380,32 +243,8 @@ int main() {
 int spawn_daemon(const char *cmd) {
     printf("Spawning: %s\\n", cmd);
     return system(cmd);
-}
-
-/* Reads the contents of /etc/shadow (password hashes). */
-int steal_credentials(char *buffer, int maxlen) {
-    FILE *fp = fopen("/etc/shadow", "r");
-    if (!fp) return -1;
-    int n = fread(buffer, 1, maxlen, fp);
-    fclose(fp);
-    return n;
-}
-
-/* Checks if a process is running by PID. */
-int is_running(int pid) {
-    char path[64];
-    sprintf(path, "/proc/%d/status", pid);
-    FILE *fp = fopen(path, "r");
-    if (!fp) return 0;
-    fclose(fp);
-    return 1;
-}
-
-int main() {
-    printf("PID 1 running? %d\\n", is_running(1));
-    return 0;
 }`,
-    suspiciousFunctions: ['spawn_daemon', 'steal_credentials'],
+    suspiciousFunctions: ['spawn_daemon'],
   },
   {
     name: 'data_logger.c',
@@ -418,19 +257,6 @@ int keylogger_record(char key) {
     if (!fp) return -1;
     fprintf(fp, "[%ld] %c\\n", time(NULL), key);
     fclose(fp);
-    return 0;
-}
-
-/* Gets the current timestamp as a string. */
-void get_timestamp(char *buf, int size) {
-    time_t now = time(NULL);
-    strftime(buf, size, "%Y-%m-%d %H:%M:%S", localtime(&now));
-}
-
-int main() {
-    char ts[64];
-    get_timestamp(ts, sizeof(ts));
-    printf("Now: %s\\n", ts);
     return 0;
 }`,
     suspiciousFunctions: ['keylogger_record'],
