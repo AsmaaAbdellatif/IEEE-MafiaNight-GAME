@@ -32,7 +32,7 @@ export default function ChatPanel({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [activeMessages]);
+  }, [activeMessages.length, showHackerChat]);
 
   const handleSend = (e) => {
     e.preventDefault();
@@ -62,7 +62,7 @@ export default function ChatPanel({
   };
 
   return (
-<div className="cyber-card flex flex-col">      {/* Tab header */}
+<div className="cyber-card flex flex-col h-[500px]">      {/* Tab header */}
       <div className="flex items-center gap-2 mb-2">
         <button
           onClick={() => setShowHackerChat(false)}

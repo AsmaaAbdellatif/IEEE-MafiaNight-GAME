@@ -120,7 +120,7 @@ export default function NightPanel({
           Night is active… The hackers are making their move.
         </p>
         <p className="text-green-400 text-xs mt-2 font-semibold">
-          At sunrise, you'll review code, repair bugs, and choose who to protect!
+          At sunrise, you'll receive the attacked code and choose the correct fix to protect the target!
         </p>
       </div>
     );

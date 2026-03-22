@@ -671,7 +671,7 @@ function getRoleDescription(role) {
     case ROLES.SECURITY_LEAD:
       return 'You are the QA. Each night, browse up to 2 players\' code looking for suspicious function names. If you find functions like exploit_buffer or rootkit_load — that player is a Hacker!';
     case ROLES.ADMIN:
-      return 'You are the Admin. At sunrise, scan a player\'s code for corruption. If corrupted, you\'ll see all their files — choose which file has the bug. ONE try only: correct → you protect that player; wrong → that player is eliminated!';
+      return 'You are the Admin. At sunrise, you\'ll automatically receive the attacked code. Your job is to fix the corrupted code by choosing the correct repair. ONE try only: correct fix → you protect that player; wrong fix → that player is eliminated!';
     default:
       return '';
   }
