@@ -160,6 +160,8 @@ export default function App() {
         setHackerInjectResult(null);
         setHackerInjectVoteStatus(null);
         setAdminRepairResult(null);
+        setAdminScanResult(null);
+        setAdminBugGuessResult(null);
         setSecurityScanResult(null);
         setPlayerCodeData(null);
       }
