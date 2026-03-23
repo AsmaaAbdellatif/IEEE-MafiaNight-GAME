@@ -476,9 +476,9 @@ function registerHandlers(io, socket) {
     const player = room.getPlayer(socket.id);
     if (!player || !player.alive || !player.isAdmin()) return;
 
-    const effectiveTargetId = room.nightActions?.hackerTarget || targetId;
+    const effectiveTargetId = targetId || room.nightActions?.hackerTarget;
     if (!effectiveTargetId) {
-      socket.emit(EVENTS.ERROR, { message: 'No hacked target is available to review yet.' });
+      socket.emit(EVENTS.ERROR, { message: 'No target selected. Choose a player to scan.' });
       return;
     }
 
@@ -493,9 +493,10 @@ function registerHandlers(io, socket) {
     const details = CodeEngine.getCorruptionDetails(room.codeStore, effectiveTargetId);
     const target = room.getPlayer(effectiveTargetId);
 
-    // Store correctFixIndex server-side (don't send to client)
+    // Store correctFixIndex and scanned target server-side (don't send to client)
     if (details.corrupted && typeof details.correctFixIndex === 'number') {
       room.nightActions.adminCorrectFixIndex = details.correctFixIndex;
+      room.nightActions.adminScannedTarget = effectiveTargetId;
     }
 
     // Strip correctFixIndex before sending to client
@@ -507,14 +508,7 @@ function registerHandlers(io, socket) {
       ...clientDetails,
     });
 
-    // If no corruption found, auto-mark admin as done so sunrise can auto-skip
-    if (!details.corrupted) {
-      room.markSunriseDone(
-        ROLES.ADMIN,
-        (event, data) => broadcastToRoom(room.id, event, data),
-        (playerId, event, data) => io.to(playerId).emit(event, data)
-      );
-    }
+    // Admin manually finishes sunrise via FINISH_SUNRISE — don't auto-mark done here
   });
 
   /* ──────────────────────────────────────────
@@ -561,11 +555,10 @@ function registerHandlers(io, socket) {
       return;
     }
 
-    // Guard: admin may only repair the player actually targeted by hackers this night.
-    // Prevents a malformed payload from killing or protecting the wrong player.
-    const hackerTarget = room.nightActions.hackerTarget;
-    if (!hackerTarget || targetId !== hackerTarget) {
-      socket.emit(EVENTS.ERROR, { message: 'You can only repair the player targeted by hackers this night.' });
+    // Guard: admin may only repair the player they scanned.
+    const scannedTarget = room.nightActions.adminScannedTarget;
+    if (!scannedTarget || targetId !== scannedTarget) {
+      socket.emit(EVENTS.ERROR, { message: 'You can only repair the player you scanned.' });
       return;
     }
 

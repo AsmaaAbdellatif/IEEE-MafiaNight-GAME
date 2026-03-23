@@ -423,6 +423,7 @@ class Room {
     };
     this.hackerVotes = new Map();
     this.hackerInjectVotes = new Map();
+    this._sunriseResolved = false;
 
     this.setPhase(PHASES.NIGHT, broadcast, {
       message: 'Night falls… Hackers choose their target and inject malicious code.',
@@ -531,6 +532,9 @@ class Room {
    * Hacker attack vs Admin protection is resolved here.
    */
   resolveSunrise(broadcast, sendToPlayerFn) {
+    // Guard against double execution (timer + early completion race)
+    if (this._sunriseResolved) return;
+    this._sunriseResolved = true;
     this.clearTimer();
 
     // Resolve standard night actions (elimination, protection, stability)
