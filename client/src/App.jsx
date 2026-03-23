@@ -6,7 +6,7 @@ import GameScreen from './components/GameScreen';
 import GameOverScreen from './components/GameOverScreen';
 import RoleRevealModal from './components/RoleRevealModal';
 import ToastContainer from './components/Toast';
-import { playPhaseChange, playChatNotif, playElimination, playJoinRoom, playPlayerJoined, playGameStart, playRoleReveal, playVoteResult, playDefenseStart, playProtectionSaved, playHackerInject, playScanClean, playScanCorrupted, playRepair, playWin, playLose, playSunrise, playHackerChat, playSendMessage, playSkip } from './utils/sounds';
+import { playPhaseChange, playChatNotif, playElimination, playJoinRoom, playPlayerJoined, playGameStart, playRoleReveal, playVoteResult, playDefenseStart, playProtectionSaved, playHackerInject, playScanClean, playScanCorrupted, playRepair, playWin, playLose, playSunrise, playHackerChat, playSendMessage, playSkip, playDecryptTick, playDecryptComplete } from './utils/sounds';
 import { applyThemeToDocument } from './utils/themes';
 import SkyBackground from './components/SkyBackground';
 import { RefreshCw, Skull, AlertTriangle } from 'lucide-react';

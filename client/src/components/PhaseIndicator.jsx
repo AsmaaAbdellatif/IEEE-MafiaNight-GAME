@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PHASES } from '../shared/constants';
 import { playTick } from '../utils/sounds';
-import { Sun, Vote, Shield, Moon, Sunrise, Flag } from 'lucide-react';
+import { Sun, Vote, Shield, Moon, Sunrise, Flag, SkipForward } from 'lucide-react';
 
 /**
  * PhaseIndicator – Displays the current phase, sprint number, and countdown timer.
@@ -61,7 +61,7 @@ export default function PhaseIndicator({ phase, sprint, systemStability, advance
     <div className={`bg-[#0b1117] border ${config.border} rounded-lg p-3 mb-5`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className={`text-xs uppercase tracking-wider ${config.color} font-bold flex items-center gap-1.5`}>
+          <p className={`text-xs uppercase tracking-wider ${config.color} font-bold flex items-center gap-1.5 font-display`}>
             {config.icon && <config.icon size={14} />}
             {config.label}
           </p>
@@ -78,27 +78,32 @@ export default function PhaseIndicator({ phase, sprint, systemStability, advance
             </div>
           )}
 
-          {/* compact Skip button + unanimous vote counter */}
+          {/* Skip button — large & prominent */}
           {showSkip && amAlive && (
-            <div className="flex flex-col items-end gap-0.5">
+            <div className="flex flex-col items-end gap-1">
               <button
                 onClick={onSkipPhase}
                 disabled={hasSkipped}
-                title={hasSkipped ? 'Waiting for all players to agree' : 'Vote to skip (all players must agree)'}
-                className={`text-[12px] px-3 py-0.5 rounded-full transition-all ${
+                title={hasSkipped ? 'Waiting for all players to agree' : 'Vote to skip phase (all players must agree)'}
+                className={`flex items-center gap-1.5 text-sm font-bold px-4 py-1.5 rounded-lg transition-all font-display tracking-wider ${
                   hasSkipped
-                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                    : 'bg-cyber-blue/20 border border-cyber-blue/40 text-cyber-blue hover:bg-cyber-blue/30'
+                    ? 'bg-gray-700/80 text-gray-400 cursor-not-allowed border border-gray-600/50'
+                    : 'bg-cyber-yellow/20 border-2 border-cyber-yellow/60 text-cyber-yellow hover:bg-cyber-yellow/30 hover:shadow-[0_0_15px_rgba(255,204,0,0.3)] active:scale-95'
                 }`}
               >
-                {hasSkipped ? 'Waiting...' : 'Skip'}
+                <SkipForward size={16} />
+                {hasSkipped ? 'VOTED' : 'SKIP PHASE'}
               </button>
               {totalAliveForSkip > 0 && (
-                <span className={`text-[10px] font-mono ${
-                  skipCount === totalAliveForSkip ? 'text-cyber-green' : 'text-gray-500'
+                <div className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded ${
+                  skipCount === totalAliveForSkip
+                    ? 'text-cyber-green bg-cyber-green/10'
+                    : skipCount > 0
+                    ? 'text-cyber-yellow bg-cyber-yellow/10'
+                    : 'text-gray-500'
                 }`}>
-                  {skipCount}/{totalAliveForSkip} ready
-                </span>
+                  {skipCount}/{totalAliveForSkip} voted to skip
+                </div>
               )}
             </div>
           )}

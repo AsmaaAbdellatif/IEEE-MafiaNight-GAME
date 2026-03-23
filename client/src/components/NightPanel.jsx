@@ -1,7 +1,224 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ROLES } from '../shared/constants';
 import { getAvatarForPlayer } from '../utils/avatars';
-import { Search, Bug, Wrench, Moon, Skull, CheckCircle, AlertTriangle, Crosshair } from 'lucide-react';
+import { Search, Bug, Wrench, Moon, Skull, CheckCircle, AlertTriangle, Crosshair, Terminal, Lock, Unlock, Zap } from 'lucide-react';
+import { playMiniGameKey, playMiniGameSuccess } from '../utils/sounds';
+
+/* ── Encrypted code snippets for the mini-game ── */
+const CRACK_CHALLENGES = [
+  { encrypted: 'Xli$wivziv$mw$gsqtvsqmwih', answer: 'The server is compromised', shift: 4, hint: 'Caesar cipher, shift 4' },
+  { encrypted: 'eggiww$kvergxih', answer: 'access granted', shift: 4, hint: 'Caesar cipher, shift 4' },
+  { encrypted: 'svvmkly$kpqopkv', answer: 'override firewall', shift: 7, hint: 'Caesar cipher, shift 7' },
+  { encrypted: 'gdkkvnqc$ejcpigf', answer: 'password changed', shift: 2, hint: 'Caesar cipher, shift 2' },
+  { encrypted: 'uifsf!jt!b!cbdlepps', answer: 'there is a backdoor', shift: 1, hint: 'Caesar cipher, shift 1' },
+  { encrypted: 'hqfubswlrq$nhb$irxqg', answer: 'encryption key found', shift: 3, hint: 'Caesar cipher, shift 3' },
+  { encrypted: 'wjhzwnyd%httlwwji', answer: 'security breached', shift: 5, hint: 'Caesar cipher, shift 5' },
+  { encrypted: 'ytkrj%nskynts%ktzsi', answer: 'shell injection found', shift: 5, hint: 'Caesar cipher, shift 5' },
+];
+
+/**
+ * DevCrackMiniGame — A cipher-cracking mini-game for developers during night phase.
+ * Players decode encrypted messages by typing the correct plaintext.
+ */
+function DevCrackMiniGame() {
+  const [challengeIdx, setChallengeIdx] = useState(() => Math.floor(Math.random() * CRACK_CHALLENGES.length));
+  const [input, setInput] = useState('');
+  const [solved, setSolved] = useState(0);
+  const [showHint, setShowHint] = useState(false);
+  const [showTable, setShowTable] = useState(false);
+  const [flash, setFlash] = useState(false);
+  const [shakeWrong, setShakeWrong] = useState(false);
+  const inputRef = useRef(null);
+
+  const challenge = CRACK_CHALLENGES[challengeIdx];
+
+  const nextChallenge = useCallback(() => {
+    setFlash(true);
+    try { playMiniGameSuccess(); } catch (_) {}
+    setTimeout(() => {
+      setSolved(s => s + 1);
+      setChallengeIdx(prev => {
+        let next;
+        do { next = Math.floor(Math.random() * CRACK_CHALLENGES.length); } while (next === prev && CRACK_CHALLENGES.length > 1);
+        return next;
+      });
+      setInput('');
+      setShowHint(false);
+      setFlash(false);
+    }, 800);
+  }, []);
+
+  const handleInput = (e) => {
+    const val = e.target.value;
+    setInput(val);
+    try { playMiniGameKey(); } catch (_) {}
+
+    if (val.toLowerCase().trim() === challenge.answer.toLowerCase()) {
+      nextChallenge();
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      if (input.toLowerCase().trim() !== challenge.answer.toLowerCase()) {
+        setShakeWrong(true);
+        setTimeout(() => setShakeWrong(false), 500);
+      }
+    }
+  };
+
+  // Visualize how close the player's guess is
+  const getMatchDisplay = () => {
+    const answer = challenge.answer.toLowerCase();
+    const guess = input.toLowerCase();
+    return answer.split('').map((ch, i) => {
+      if (i < guess.length && guess[i] === ch) {
+        return <span key={i} className="text-cyber-green">{ch}</span>;
+      } else if (i < guess.length) {
+        return <span key={i} className="text-cyber-red">{ch === ' ' ? '\u00A0' : '_'}</span>;
+      }
+      return <span key={i} className="text-gray-600">{ch === ' ' ? '\u00A0' : '_'}</span>;
+    });
+  };
+
+  return (
+    <div className={`cyber-card animate-slide-up ${flash ? 'border-cyber-green/60 bg-cyber-green/5' : ''} transition-all`}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-xs uppercase tracking-wider text-cyber-blue font-bold flex items-center gap-1.5 font-display">
+          <Terminal size={14} /> Code Cracker
+        </h3>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 font-cyber">DECODED:</span>
+          <span className="text-xs font-bold text-cyber-green font-display">{solved}</span>
+        </div>
+      </div>
+
+      <p className="text-[10px] text-gray-500 mb-3 font-cyber">
+        Decrypt the intercepted message while you wait. Type the plaintext below.
+      </p>
+
+      {/* Encrypted message display */}
+      <div className="bg-black/60 border border-cyber-blue/30 rounded-lg p-3 mb-3 font-mono">
+        <div className="flex items-center gap-2 mb-2">
+          <Lock size={12} className="text-cyber-red" />
+          <span className="text-[10px] text-cyber-red uppercase tracking-widest font-display">Intercepted Message</span>
+        </div>
+        <p className="text-sm text-cyber-yellow font-bold tracking-wide break-all font-cyber">
+          {challenge.encrypted}
+        </p>
+      </div>
+
+      {/* Match progress */}
+      <div className="bg-black/40 rounded px-3 py-2 mb-3 font-mono text-sm tracking-wider min-h-[2rem] flex items-center flex-wrap">
+        {getMatchDisplay()}
+      </div>
+
+      {/* Input */}
+      <div className={`${shakeWrong ? 'animate-shake' : ''}`}>
+        <input
+          ref={inputRef}
+          type="text"
+          value={input}
+          onChange={handleInput}
+          onKeyDown={handleKeyDown}
+          placeholder="Type decoded message..."
+          className="w-full cyber-input text-sm font-cyber"
+          autoFocus
+        />
+      </div>
+
+      {/* Hint toggle */}
+      <div className="flex items-center justify-between mt-3">
+        <button
+          onClick={() => setShowHint(!showHint)}
+          className="text-[10px] text-gray-500 hover:text-cyber-yellow transition-colors flex items-center gap-1 font-cyber"
+        >
+          <Zap size={10} /> {showHint ? 'Hide Hint' : 'Show Hint'}
+        </button>
+        {flash && (
+          <span className="text-xs text-cyber-green font-bold flex items-center gap-1 animate-fade-in font-display">
+            <Unlock size={12} /> DECRYPTED!
+          </span>
+        )}
+      </div>
+      {showHint && (
+        <p className="text-[10px] text-cyber-yellow/70 mt-1 font-cyber animate-fade-in">
+          Hint: {challenge.hint}
+        </p>
+      )}
+
+      {/* Cipher reference table toggle */}
+      <button
+        onClick={() => setShowTable(!showTable)}
+        className="mt-2 text-[10px] text-gray-500 hover:text-cyber-blue transition-colors flex items-center gap-1 font-cyber"
+      >
+        <Terminal size={10} /> {showTable ? 'Hide' : 'Show'} Cipher Table
+      </button>
+      {showTable && (
+        <div className="mt-2 bg-black/60 border border-cyber-blue/20 rounded-lg p-2 animate-fade-in overflow-x-auto">
+          <p className="text-[9px] text-gray-500 mb-1.5 font-cyber uppercase tracking-widest">Alphabet Reference (A=1, B=2, ...)</p>
+          <div className="grid grid-cols-13 gap-0 font-mono text-[10px] text-center">
+            {/* Row 1: A-M */}
+            {'ABCDEFGHIJKLM'.split('').map((ch, i) => (
+              <div key={ch} className="flex flex-col border border-cyber-border/30">
+                <span className="text-cyber-blue font-bold px-1 py-0.5 bg-cyber-blue/5">{ch}</span>
+                <span className="text-gray-500 px-1 py-0.5">{i + 1}</span>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-13 gap-0 font-mono text-[10px] text-center mt-0">
+            {/* Row 2: N-Z */}
+            {'NOPQRSTUVWXYZ'.split('').map((ch, i) => (
+              <div key={ch} className="flex flex-col border border-cyber-border/30">
+                <span className="text-cyber-blue font-bold px-1 py-0.5 bg-cyber-blue/5">{ch}</span>
+                <span className="text-gray-500 px-1 py-0.5">{i + 14}</span>
+              </div>
+            ))}
+          </div>
+          {/* Shift helper grid for current challenge */}
+          <div className="mt-2 pt-1.5 border-t border-cyber-border/20">
+            <p className="text-[9px] text-cyber-yellow mb-1 font-cyber">Shift -{challenge.shift} mapping (encrypted → decrypted):</p>
+            <div className="grid grid-cols-13 gap-0 font-mono text-[10px] text-center">
+              {'ABCDEFGHIJKLM'.split('').map(ch => {
+                const shifted = String.fromCharCode(((ch.charCodeAt(0) - 65 - challenge.shift + 26) % 26) + 65);
+                return (
+                  <div key={ch} className="flex flex-col border border-cyber-border/30">
+                    <span className="text-cyber-yellow font-bold px-1 py-0.5 bg-cyber-yellow/5">{ch}</span>
+                    <span className="text-cyber-green px-1 py-0.5">{shifted}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="grid grid-cols-13 gap-0 font-mono text-[10px] text-center mt-0">
+              {'NOPQRSTUVWXYZ'.split('').map(ch => {
+                const shifted = String.fromCharCode(((ch.charCodeAt(0) - 65 - challenge.shift + 26) % 26) + 65);
+                return (
+                  <div key={ch} className="flex flex-col border border-cyber-border/30">
+                    <span className="text-cyber-yellow font-bold px-1 py-0.5 bg-cyber-yellow/5">{ch}</span>
+                    <span className="text-cyber-green px-1 py-0.5">{shifted}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Score bar */}
+      {solved > 0 && (
+        <div className="mt-3 pt-2 border-t border-cyber-border">
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: Math.min(solved, 10) }).map((_, i) => (
+              <div key={i} className="w-2 h-2 rounded-full bg-cyber-green shadow-[0_0_4px_rgba(0,255,136,0.5)]" />
+            ))}
+            {solved > 10 && <span className="text-[10px] text-cyber-green font-cyber">+{solved - 10}</span>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /**
  * NightPanel – Night action UI for Hackers, QA, and Admin.
@@ -81,19 +298,9 @@ export default function NightPanel({
     );
   }
 
-  // Developer has no night action
+  // Developer mini-game during night
   if (myRole === ROLES.DEVELOPER) {
-    return (
-      <div className="cyber-card text-center animate-slide-up">
-        <p className="text-6xl mb-3 animate-float flex justify-center"><Moon size={48} /></p>
-        <p className="text-gray-400 text-sm">
-          You are a Developer. Rest while the night passes…
-        </p>
-        <p className="text-gray-600 text-xs mt-2">
-          Hope the Admin protects you!
-        </p>
-      </div>
-    );
+    return <DevCrackMiniGame />;
   }
 
   // QA — waits during night, acts at sunrise

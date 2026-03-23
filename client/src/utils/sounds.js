@@ -93,6 +93,42 @@ export function playRoleReveal() {
   } catch (_) {}
 }
 
+/** Decryption scramble tick — rapid digital glitch during role text decryption */
+export function playDecryptTick() {
+  try {
+    const c = getAudioContext(), t = c.currentTime;
+    _osc(c, 'square', 800 + Math.random() * 1200, t, 0.03, 0.04);
+    _noise(c, t, 0.02, 0.02, 6000);
+  } catch (_) {}
+}
+
+/** Decryption complete — satisfying confirmation beep */
+export function playDecryptComplete() {
+  try {
+    const c = getAudioContext(), t = c.currentTime;
+    _sweep(c, 'sine', 400, 1200, t, 0.3, 0.15);
+    _osc(c, 'sine', 1200, t + 0.25, 0.4, 0.12);
+    _osc(c, 'triangle', 1800, t + 0.3, 0.3, 0.08);
+    _noise(c, t + 0.2, 0.15, 0.03, 8000);
+  } catch (_) {}
+}
+
+/** Mini-game key press beep */
+export function playMiniGameKey() {
+  try {
+    const c = getAudioContext(), t = c.currentTime;
+    _osc(c, 'sine', 600 + Math.random() * 400, t, 0.06, 0.05);
+  } catch (_) {}
+}
+
+/** Mini-game success sound */
+export function playMiniGameSuccess() {
+  try {
+    const c = getAudioContext(), t = c.currentTime;
+    [880, 1100, 1320].forEach((f, i) => _osc(c, 'sine', f, t + i * 0.08, 0.25, 0.1));
+  } catch (_) {}
+}
+
 /** Phase change sound */
 export function playPhaseChange(isNight) {
   try {

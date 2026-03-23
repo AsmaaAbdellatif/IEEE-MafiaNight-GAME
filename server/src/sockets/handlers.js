@@ -204,14 +204,23 @@ function registerHandlers(io, socket) {
     // Broadcast updated vote tally + individual votes
     const { tally } = room.voteTracker.tally();
     const individualVotes = {};
-    for (const [voterId, targetId] of room.voteTracker.votes.entries()) {
+    const VoteTracker = require('../game/VoteTracker');
+    for (const [voterId, tid] of room.voteTracker.votes.entries()) {
       const voter = room.getPlayer(voterId);
-      const target = room.getPlayer(targetId);
-      individualVotes[voterId] = {
-        voterName: voter?.name || 'Unknown',
-        targetId,
-        targetName: target?.name || 'Unknown',
-      };
+      if (tid === VoteTracker.SKIP_VOTE) {
+        individualVotes[voterId] = {
+          voterName: voter?.name || 'Unknown',
+          targetId: tid,
+          targetName: 'SKIP (No Kick)',
+        };
+      } else {
+        const target = room.getPlayer(tid);
+        individualVotes[voterId] = {
+          voterName: voter?.name || 'Unknown',
+          targetId: tid,
+          targetName: target?.name || 'Unknown',
+        };
+      }
     }
     broadcastToRoom(room.id, EVENTS.VOTE_UPDATE, {
       tally,
@@ -497,6 +506,15 @@ function registerHandlers(io, socket) {
       targetName: target?.name || details.playerName || 'Unknown',
       ...clientDetails,
     });
+
+    // If no corruption found, auto-mark admin as done so sunrise can auto-skip
+    if (!details.corrupted) {
+      room.markSunriseDone(
+        ROLES.ADMIN,
+        (event, data) => broadcastToRoom(room.id, event, data),
+        (playerId, event, data) => io.to(playerId).emit(event, data)
+      );
+    }
   });
 
   /* ──────────────────────────────────────────

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { getAvatarForPlayer } from '../utils/avatars';
 import { playVoteCast, playClick } from '../utils/sounds';
-import { Vote } from 'lucide-react';
+import { Vote, SkipForward } from 'lucide-react';
+
+const SKIP_VOTE = '__skip__';
 
 /**
  * VotingPanel – UI for casting votes during the Day voting phase.
@@ -74,14 +76,38 @@ export default function VotingPanel({
                 </button>
               );
             })}
+
+            {/* Skip vote option */}
+            <button
+              onClick={() => { setSelectedTarget(SKIP_VOTE); setHasVoted(false); try { playClick(); } catch(_) {} }}
+              className={`w-full flex items-center justify-between rounded px-3 py-2 text-sm transition-all animate-slide-right
+                ${selectedTarget === SKIP_VOTE
+                  ? 'bg-cyber-yellow/20 border border-cyber-yellow/40 text-cyber-yellow'
+                  : 'bg-cyber-darker border border-dashed border-cyber-yellow/20 hover:border-cyber-yellow/40 text-gray-400'
+                }
+              `}
+              style={{ animationDelay: `${targets.length * 60}ms`, animationFillMode: 'both' }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-cyber-yellow/10 flex items-center justify-center">
+                  <SkipForward size={16} className="text-cyber-yellow" />
+                </div>
+                <span className="font-display tracking-wider text-xs">SKIP — Don't Kick Anyone</span>
+              </div>
+              {voteTally?.[SKIP_VOTE] > 0 && (
+                <span className="text-xs text-cyber-yellow font-bold">
+                  {voteTally[SKIP_VOTE]} vote{voteTally[SKIP_VOTE] > 1 ? 's' : ''}
+                </span>
+              )}
+            </button>
           </div>
 
           <button
             onClick={handleVote}
             disabled={!selectedTarget}
-            className="cyber-btn-red w-full"
+            className={selectedTarget === SKIP_VOTE ? 'cyber-btn w-full bg-cyber-yellow/20 text-cyber-yellow border border-cyber-yellow/40 hover:bg-cyber-yellow/30' : 'cyber-btn-red w-full'}
           >
-            {hasVoted ? '✓ Vote Submitted (click to change)' : 'Cast Vote'}
+            {hasVoted ? '✓ Vote Submitted (click to change)' : selectedTarget === SKIP_VOTE ? 'Vote to Skip' : 'Cast Vote'}
           </button>
         </>
       )}
@@ -99,7 +125,7 @@ export default function VotingPanel({
                   {voterName}
                 </span>
                 <span className="text-gray-600">→</span>
-                <span className="text-cyber-red font-semibold">{targetName}</span>
+                <span className={`font-semibold ${targetName === 'SKIP (No Kick)' ? 'text-cyber-yellow' : 'text-cyber-red'}`}>{targetName}</span>
               </div>
             ))}
           </div>

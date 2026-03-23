@@ -350,9 +350,16 @@ class Room {
     this.clearTimer();
 
     const alive = this.getAlivePlayers();
-    const { eliminated, defenders, tally } = this.voteTracker.processRound(alive);
+    const { eliminated, defenders, tally, skipped } = this.voteTracker.processRound(alive);
 
-    broadcast(EVENTS.VOTE_RESULT, { tally, eliminatedId: eliminated?.id || null, defenders: defenders.map(d => d.id) });
+    broadcast(EVENTS.VOTE_RESULT, { tally, eliminatedId: eliminated?.id || null, defenders: defenders.map(d => d.id), skipped: !!skipped });
+
+    if (skipped && !eliminated) {
+      // Majority voted to skip — no elimination, advance to night
+      this.sprint += 1;
+      this.startNight(broadcast);
+      return;
+    }
 
     if (eliminated) {
       // Reveal role
@@ -560,12 +567,23 @@ class Room {
       });
       this.log.push({ sprint: this.sprint, phase: 'night', eliminated: result.eliminated.name, role: result.eliminated.role });
     } else if (result.protectionSaved) {
+      // Everyone else sees a generic "quiet night" message — admin's save is secret
       broadcast(EVENTS.NIGHT_RESULT, {
         eliminated: null,
         adminKilled: result.adminKilled ? { id: result.adminKilled.id, name: result.adminKilled.name, role: result.adminKilled.role } : null,
-        protectionSaved: true,
-        message: `The Admin correctly identified the corrupted file and saved ${this.getPlayer(this.nightActions.adminProtectTarget)?.name || 'the targeted player'}! The hacker attack was blocked.`,
+        protectionSaved: false,
+        message: 'The night passes quietly\u2026 no one was eliminated.',
       });
+      // Only the admin knows they saved someone
+      const adminPlayer = this.getAlivePlayers().find(p => p.role === ROLES.ADMIN);
+      if (adminPlayer && sendToPlayerFn) {
+        sendToPlayerFn(adminPlayer.id, EVENTS.NIGHT_RESULT, {
+          eliminated: null,
+          adminKilled: null,
+          protectionSaved: true,
+          message: `You correctly identified the corrupted file and saved ${this.getPlayer(this.nightActions.adminProtectTarget)?.name || 'the targeted player'}! The hacker attack was blocked.`,
+        });
+      }
     } else if (result.adminKilled) {
       broadcast(EVENTS.NIGHT_RESULT, {
         eliminated: null,

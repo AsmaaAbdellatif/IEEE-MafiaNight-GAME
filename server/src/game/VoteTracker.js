@@ -50,14 +50,22 @@ class VoteTracker {
     return this.votes.size >= this.expectedVoters;
   }
 
+  /** Special constant for "skip" votes (no elimination). */
+  static SKIP_VOTE = '__skip__';
+
   /**
    * Tally votes.
-   * @returns {{ tally: Map<targetId, number>, highest: string[], highestCount: number }}
+   * @returns {{ tally: Map<targetId, number>, highest: string[], highestCount: number, skipVotes: number }}
    */
   tally() {
     const tally = new Map();
+    let skipVotes = 0;
     for (const targetId of this.votes.values()) {
-      tally.set(targetId, (tally.get(targetId) || 0) + 1);
+      if (targetId === VoteTracker.SKIP_VOTE) {
+        skipVotes++;
+      } else {
+        tally.set(targetId, (tally.get(targetId) || 0) + 1);
+      }
     }
 
     let highestCount = 0;
@@ -70,7 +78,7 @@ class VoteTracker {
       if (count === highestCount && highestCount > 0) highest.push(id);
     }
 
-    return { tally: Object.fromEntries(tally), highest, highestCount };
+    return { tally: Object.fromEntries(tally), highest, highestCount, skipVotes };
   }
 
   /**
@@ -81,11 +89,16 @@ class VoteTracker {
    * @returns {{ eliminated: Player|null, defenders: Player[], tally: object }}
    */
   processRound(alivePlayers) {
-    const { tally, highest, highestCount } = this.tally();
+    const { tally, highest, highestCount, skipVotes } = this.tally();
 
     if (highestCount === 0) {
-      // No votes cast – no one eliminated
-      return { eliminated: null, defenders: [], tally };
+      // No votes cast (or only skip votes) – no one eliminated
+      return { eliminated: null, defenders: [], tally, skipped: skipVotes > 0 };
+    }
+
+    // If skip votes are >= every individual player's votes, skip wins — no elimination
+    if (skipVotes >= highestCount) {
+      return { eliminated: null, defenders: [], tally, skipped: true };
     }
 
     // Update streaks

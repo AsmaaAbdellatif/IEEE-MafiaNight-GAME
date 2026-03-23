@@ -18,6 +18,8 @@ export default {
       },
       fontFamily: {
         mono: ['"Fira Code"', '"JetBrains Mono"', 'monospace'],
+        cyber: ['"Share Tech Mono"', '"Fira Code"', 'monospace'],
+        display: ['"Orbitron"', 'sans-serif'],
       },
       animation: {
         'pulse-glow':     'pulseGlow 2s ease-in-out infinite',
@@ -40,6 +42,8 @@ export default {
         'stagger-3':      'slideUp 0.4s 0.15s ease-out both',
         'stagger-4':      'slideUp 0.4s 0.2s ease-out both',
         'stagger-5':      'slideUp 0.4s 0.25s ease-out both',
+        'decrypt':        'decrypt 0.08s steps(1) infinite',
+        'matrix-fall':    'matrixFall 1.5s linear infinite',
       },
       keyframes: {
         pulseGlow: {
@@ -85,6 +89,11 @@ export default {
         flipIn: {
           '0%':   { opacity: '0', transform: 'perspective(400px) rotateX(-30deg)' },
           '100%': { opacity: '1', transform: 'perspective(400px) rotateX(0deg)' },
+        },
+        matrixFall: {
+          '0%':   { transform: 'translateY(-100%)', opacity: '1' },
+          '80%':  { opacity: '1' },
+          '100%': { transform: 'translateY(100vh)', opacity: '0' },
         },
       },
     },

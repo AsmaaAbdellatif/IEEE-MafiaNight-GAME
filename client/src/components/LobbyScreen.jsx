@@ -64,7 +64,7 @@ export default function LobbyScreen({
           {/* Room Code */}
           <div className="bg-cyber-darker rounded-lg p-4 mb-6 text-center animate-bounce-in">
             <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Room Code</p>
-            <p className="text-3xl font-bold text-cyber-green neon-text-green tracking-[0.3em] animate-glow-pulse">
+            <p className="text-3xl font-bold text-cyber-green neon-text-green tracking-[0.3em] animate-glow-pulse font-display">
               {roomId}
             </p>
             <p className="text-gray-500 text-xs mt-2">Share this code with other players</p>

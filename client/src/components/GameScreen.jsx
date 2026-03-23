@@ -148,7 +148,7 @@ export default function GameScreen({
 
   {/* Center - Title */}
   <div className="text-center">
-    <h1 className={`text-sm font-bold ${theme.titleColor} ${theme.titleGlow} tracking-widest`}>
+    <h1 className={`text-sm font-bold ${theme.titleColor} ${theme.titleGlow} tracking-widest font-display`}>
       COMPUTER SOCIETY MAFIA NIGHT - IEEE EDITION
     </h1>
   </div>
@@ -158,7 +158,7 @@ export default function GameScreen({
     
     <div className={`text-xs px-3 py-1.5 rounded-full border flex items-center gap-2 shadow-lg ${theme.badgeBg} ${theme.badgeBorder} ${theme.badgeText}`}>
       <img src={getAvatarForRole(myRole)} alt={myRole} className="w-5 h-5 rounded-full" />
-      <span className="font-bold tracking-wider">
+      <span className="font-bold tracking-wider font-display">
         {myRole?.replace('_', ' ')}
       </span>
     </div>
