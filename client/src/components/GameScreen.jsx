@@ -71,15 +71,15 @@ export default function GameScreen({
   const [adminProtectChoice, setAdminProtectChoice] = React.useState(null);
   const [adminCodeExpanded, setAdminCodeExpanded] = React.useState(false);
   const [adminFileGuessIdx, setAdminFileGuessIdx] = React.useState(null);
-  const adminLastScanAtRef = React.useRef(0);
 
   // Reset admin guess state when scan target changes
   React.useEffect(() => {
     setAdminFileGuessIdx(null);
   }, [adminScanResult?.targetId]);
 
+  // Reset admin protect choice on phase change
   React.useEffect(() => {
-    adminLastScanAtRef.current = 0;
+    setAdminProtectChoice(null);
   }, [phase, gameState?.hackerInjected]);
 
   const isNight = phase === PHASES.NIGHT;
@@ -108,27 +108,11 @@ export default function GameScreen({
   };
   const isHacker = myRole === ROLES.HACKER;
 
-  React.useEffect(() => {
-    const canAutoScan =
-      (isSunrise || isNightReview) &&
-      myRole === ROLES.ADMIN &&
-      amAlive &&
-      !!gameState?.hackerInjected &&
-      !adminScanResult &&
-      Date.now() - adminLastScanAtRef.current > 1200;
-
-    if (!canAutoScan) return;
-    adminLastScanAtRef.current = Date.now();
-    onAdminScanCorruption();
-  }, [
-    amAlive,
-    myRole,
-    isSunrise,
-    isNightReview,
-    gameState?.hackerInjected,
-    adminScanResult,
-    onAdminScanCorruption,
-  ]);
+  // Admin selects a player to protect — trigger scan for that player
+  const handleAdminProtectSelect = React.useCallback((targetId) => {
+    setAdminProtectChoice(targetId);
+    onAdminScanCorruption(targetId);
+  }, [onAdminScanCorruption]);
 
   // Get role-specific theme
   const theme = getTheme(myRole);
@@ -210,7 +194,7 @@ export default function GameScreen({
               <div className="space-y-1 max-h-32 overflow-y-auto">
                 {eliminationLog.map((e, i) => (
                   <p key={i} className="text-xs text-gray-400 animate-slide-left" style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}>
-                    {e.role === 'Hacker' ? <Bug size={12} className="inline" /> : <Code2 size={12} className="inline" />} {e.name} ({e.role}) – {e.reason}
+                    {e.role === 'Hacker' ? <Bug size={12} className="inline" /> : <Skull size={12} className="inline" />} {e.name}{e.role ? ` (${e.role})` : ''} – {e.reason}
                   </p>
                 ))}
               </div>
@@ -291,40 +275,65 @@ export default function GameScreen({
 
           {(isSunrise || isNightReview) && (
             <div className="space-y-3 animate-slide-up mb-6">
-              {/* Admin review panel */}
+              {/* Admin review panel — Step 1: choose player, Step 2: fix code */}
               {myRole === ROLES.ADMIN && amAlive && (
                 <div className="space-y-3">
 
+                  {/* Step 1: Choose a player to protect */}
+                  {!adminProtectChoice && !adminRepairResult && (
+                    <div className="cyber-card border-green-500/30 bg-[#0d1117] space-y-3 animate-slide-up">
+                      <h3 className="text-xs uppercase tracking-wider text-green-400 font-bold flex items-center gap-1.5 font-display">
+                        <Shield size={14} /> Choose a Player to Protect
+                      </h3>
+                      <p className="text-sm text-gray-400">
+                        Select the player you believe was targeted by hackers. If their code is corrupted, you'll get a chance to fix it.
+                      </p>
+                      <div className="grid grid-cols-2 gap-3">
+                        {alivePlayers.filter(p => p.id !== myId).map((p, idx) => (
+                          <button
+                            key={p.id}
+                            onClick={() => handleAdminProtectSelect(p.id)}
+                            className="flex flex-col items-center gap-2 p-4 rounded-lg border border-green-500/30 bg-[#121826] text-green-300 hover:bg-[#1a2838] hover:border-green-400/60 hover:scale-105 hover:shadow-[0_0_15px_rgba(0,255,136,0.15)] transition-all animate-slide-up"
+                            style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}
+                          >
+                            <img src={`https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(p.name)}`} alt={p.name} className="w-12 h-12 rounded-full bg-black/40 border border-green-500/30" />
+                            <span className="font-semibold text-sm font-cyber">{p.name}</span>
+                            <span className="text-[10px] text-green-400/70 flex items-center gap-1"><Shield size={10} /> Protect</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                  {!adminScanResult && (isSunrise || isNightReview) && (
-                    <div className="p-4 rounded-lg border-2 border-dashed border-red-500/30 bg-red-950/20 text-center animate-fade-in space-y-3">
+                  {/* Step 2: Show scan result after choosing */}
+                  {adminProtectChoice && !adminScanResult && (
+                    <div className="p-4 rounded-lg border-2 border-dashed border-green-500/30 bg-green-950/10 text-center animate-fade-in space-y-3">
                       <div className="flex justify-center">
-                        <div className="w-12 h-12 rounded-full bg-red-900/30 border border-red-500/40 flex items-center justify-center">
-                          <Search size={20} className="text-red-400 animate-pulse" />
+                        <div className="w-12 h-12 rounded-full bg-green-900/30 border border-green-500/40 flex items-center justify-center">
+                          <Search size={20} className="text-green-400 animate-pulse" />
                         </div>
                       </div>
-                      <p className="text-red-300 text-sm font-semibold">Scanning for corrupted code...</p>
-                      <p className="text-gray-500 text-xs">Automatically loading the attacked file</p>
-                      <button
-                        onClick={() => onAdminScanCorruption()}
-                        className="px-4 py-2 rounded-lg border border-red-400/40 bg-red-900/30 text-red-200 hover:bg-red-800/40 transition-all font-semibold text-sm"
-                      >
-                        <Search size={12} className="inline mr-1" /> Load Attacked Code
-                      </button>
+                      <p className="text-green-300 text-sm font-semibold font-display">Scanning code...</p>
+                      <p className="text-gray-500 text-xs font-cyber">Checking for corruption in the selected player's files</p>
                     </div>
                   )}
 
-                  {adminScanResult && !adminScanResult.corrupted && (
+                  {adminProtectChoice && adminScanResult && !adminScanResult.corrupted && (
                     <div className="p-3 rounded-lg border border-green-500/30 bg-green-900/10 text-green-400 text-sm text-center animate-fade-in flex items-center justify-center gap-2">
-                      <CheckCircle size={16} /> No active attack was found for this round. The night passes safely.
+                      <CheckCircle size={16} /> No corruption found in {adminScanResult.targetName}'s code. The night passes safely.
                     </div>
                   )}
 
-                  {adminScanResult?.corrupted && (
+                  {adminProtectChoice && adminScanResult?.corrupted && !adminRepairResult && (
                     <div className="space-y-3 animate-slide-up">
-                      {/* Only show code file and options below */}
+                      <div className="p-2 rounded-lg border border-red-500/30 bg-red-950/10 text-center">
+                        <p className="text-red-300 text-sm font-bold font-display flex items-center justify-center gap-1.5">
+                          <AlertTriangle size={14} /> Corruption Detected in {adminScanResult.targetName}'s Code!
+                        </p>
+                        <p className="text-gray-500 text-xs mt-1 font-cyber">Choose the correct fix to save them. Wrong fix = fatal!</p>
+                      </div>
 
-                      {/* Corrupted code display — no scroll, like hacker code view */}
+                      {/* Corrupted code display */}
                       {adminScanResult.files?.length > 0 && (
                         <div className="space-y-0">
                           {adminScanResult.files.map((file, fIdx) => (
@@ -348,14 +357,15 @@ export default function GameScreen({
                             </div>
                           ))}
 
-                          {adminScanResult.fixOptions?.length > 0 && !adminRepairResult && (
+                          {adminScanResult.fixOptions?.length > 0 && (
                             <div className="-mt-px border-x-2 border-b-2 border-red-500/30 rounded-b-lg overflow-hidden bg-[#0d1117]">
                               <div className="p-2 space-y-2">
+                                <p className="text-[10px] text-green-400 uppercase tracking-widest font-display px-2 pt-1">Choose a Fix:</p>
                                 {adminScanResult.fixOptions.map((fix) => (
                                   <button
                                     key={fix.fixIndex}
                                     onClick={() => onAdminRepair(adminScanResult.targetId, fix.fixIndex)}
-                                    className="w-full text-left text-[11px] font-mono font-semibold tracking-wide px-4 py-3 rounded-[10px] border border-green-500/50 bg-[#112019] text-green-200 hover:bg-[#153025] hover:border-green-400/80 transition-all flex items-center gap-2.5 whitespace-nowrap overflow-hidden"
+                                    className="w-full text-left text-[11px] font-mono font-semibold tracking-wide px-4 py-3 rounded-[10px] border border-green-500/50 bg-[#112019] text-green-200 hover:bg-[#153025] hover:border-green-400/80 hover:shadow-[0_0_10px_rgba(0,255,136,0.15)] transition-all flex items-center gap-2.5 whitespace-nowrap overflow-hidden"
                                   >
                                     <span className="text-green-400 flex-shrink-0"><Wrench size={15} /></span>
                                     <span className="truncate">{simplifyFixLabel(fix.label)}</span>
@@ -372,12 +382,12 @@ export default function GameScreen({
                   {adminRepairResult && (
                     <div className={`cyber-card animate-slide-up space-y-2 ${
                       adminRepairResult.repaired
-                        ? 'border-green-500/40 bg-[#0d1117]'
+                        ? 'border-green-500/40 bg-[#0d1117] shadow-[0_0_20px_rgba(0,255,136,0.15)]'
                         : adminRepairResult.wrongFix
-                        ? 'border-red-500/40 bg-[#0d1117]'
+                        ? 'border-red-500/40 bg-[#0d1117] shadow-[0_0_20px_rgba(255,51,102,0.15)]'
                         : 'border-yellow-500/40 bg-[#0d1117]'
                     }`}>
-                      <h3 className={`text-xs uppercase tracking-wider font-bold flex items-center gap-1.5 ${
+                      <h3 className={`text-xs uppercase tracking-wider font-bold flex items-center gap-1.5 font-display ${
                         adminRepairResult.repaired ? 'text-green-400' : adminRepairResult.wrongFix ? 'text-red-400' : 'text-yellow-400'
                       }`}>
                         {adminRepairResult.repaired
@@ -387,7 +397,7 @@ export default function GameScreen({
                           : <><CheckCircle size={14} /> Repair Result</>
                         }
                       </h3>
-                      <p className={`text-sm ${adminRepairResult.repaired ? 'text-green-300' : adminRepairResult.wrongFix ? 'text-red-300' : 'text-yellow-300'}`}>
+                      <p className={`text-sm font-cyber ${adminRepairResult.repaired ? 'text-green-300' : adminRepairResult.wrongFix ? 'text-red-300' : 'text-yellow-300'}`}>
                         {adminRepairResult.repaired
                           ? `The corrupted code has been repaired successfully. ${adminRepairResult.targetName} is safe!`
                           : adminRepairResult.wrongFix

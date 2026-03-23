@@ -128,14 +128,22 @@ function DevCrackMiniGame() {
         />
       </div>
 
-      {/* Hint toggle */}
+      {/* Hint + Cipher Table — compact row */}
       <div className="flex items-center justify-between mt-3">
-        <button
-          onClick={() => setShowHint(!showHint)}
-          className="text-[10px] text-gray-500 hover:text-cyber-yellow transition-colors flex items-center gap-1 font-cyber"
-        >
-          <Zap size={10} /> {showHint ? 'Hide Hint' : 'Show Hint'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowHint(!showHint)}
+            className={`text-[10px] transition-colors flex items-center gap-1 font-cyber ${showHint ? 'text-cyber-yellow' : 'text-gray-500 hover:text-cyber-yellow'}`}
+          >
+            <Zap size={10} /> Hint
+          </button>
+          <button
+            onClick={() => setShowTable(!showTable)}
+            className={`text-[10px] transition-colors flex items-center gap-1 font-cyber ${showTable ? 'text-cyber-blue' : 'text-gray-500 hover:text-cyber-blue'}`}
+          >
+            <Terminal size={10} /> Cipher Table
+          </button>
+        </div>
         {flash && (
           <span className="text-xs text-cyber-green font-bold flex items-center gap-1 animate-fade-in font-display">
             <Unlock size={12} /> DECRYPTED!
@@ -144,66 +152,36 @@ function DevCrackMiniGame() {
       </div>
       {showHint && (
         <p className="text-[10px] text-cyber-yellow/70 mt-1 font-cyber animate-fade-in">
-          Hint: {challenge.hint}
+          {challenge.hint}
         </p>
       )}
 
-      {/* Cipher reference table toggle */}
-      <button
-        onClick={() => setShowTable(!showTable)}
-        className="mt-2 text-[10px] text-gray-500 hover:text-cyber-blue transition-colors flex items-center gap-1 font-cyber"
-      >
-        <Terminal size={10} /> {showTable ? 'Hide' : 'Show'} Cipher Table
-      </button>
-      {showTable && (
-        <div className="mt-2 bg-black/60 border border-cyber-blue/20 rounded-lg p-2 animate-fade-in overflow-x-auto">
-          <p className="text-[9px] text-gray-500 mb-1.5 font-cyber uppercase tracking-widest">Alphabet Reference (A=1, B=2, ...)</p>
-          <div className="grid grid-cols-13 gap-0 font-mono text-[10px] text-center">
-            {/* Row 1: A-M */}
-            {'ABCDEFGHIJKLM'.split('').map((ch, i) => (
-              <div key={ch} className="flex flex-col border border-cyber-border/30">
-                <span className="text-cyber-blue font-bold px-1 py-0.5 bg-cyber-blue/5">{ch}</span>
-                <span className="text-gray-500 px-1 py-0.5">{i + 1}</span>
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-13 gap-0 font-mono text-[10px] text-center mt-0">
-            {/* Row 2: N-Z */}
-            {'NOPQRSTUVWXYZ'.split('').map((ch, i) => (
-              <div key={ch} className="flex flex-col border border-cyber-border/30">
-                <span className="text-cyber-blue font-bold px-1 py-0.5 bg-cyber-blue/5">{ch}</span>
-                <span className="text-gray-500 px-1 py-0.5">{i + 14}</span>
-              </div>
-            ))}
-          </div>
-          {/* Shift helper grid for current challenge */}
-          <div className="mt-2 pt-1.5 border-t border-cyber-border/20">
-            <p className="text-[9px] text-cyber-yellow mb-1 font-cyber">Shift -{challenge.shift} mapping (encrypted → decrypted):</p>
-            <div className="grid grid-cols-13 gap-0 font-mono text-[10px] text-center">
-              {'ABCDEFGHIJKLM'.split('').map(ch => {
-                const shifted = String.fromCharCode(((ch.charCodeAt(0) - 65 - challenge.shift + 26) % 26) + 65);
+      {/* Compact cipher table — 6 columns, 5 rows */}
+      {showTable && (() => {
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        const cols = 6;
+        const rows = [];
+        for (let r = 0; r < Math.ceil(alphabet.length / cols); r++) {
+          rows.push(alphabet.slice(r * cols, r * cols + cols));
+        }
+        return (
+          <div className="mt-2 bg-black/60 border border-cyber-blue/20 rounded-lg p-2 animate-fade-in">
+            <p className="text-[9px] text-gray-500 mb-1 font-cyber uppercase tracking-widest">Shift -{challenge.shift}: <span className="text-cyber-yellow">encrypted</span> → <span className="text-cyber-green">decoded</span></p>
+            <div className="grid grid-cols-6 gap-px font-mono text-[10px]">
+              {alphabet.map(ch => {
+                const decoded = String.fromCharCode(((ch.charCodeAt(0) - 65 - challenge.shift + 26) % 26) + 65);
                 return (
-                  <div key={ch} className="flex flex-col border border-cyber-border/30">
-                    <span className="text-cyber-yellow font-bold px-1 py-0.5 bg-cyber-yellow/5">{ch}</span>
-                    <span className="text-cyber-green px-1 py-0.5">{shifted}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="grid grid-cols-13 gap-0 font-mono text-[10px] text-center mt-0">
-              {'NOPQRSTUVWXYZ'.split('').map(ch => {
-                const shifted = String.fromCharCode(((ch.charCodeAt(0) - 65 - challenge.shift + 26) % 26) + 65);
-                return (
-                  <div key={ch} className="flex flex-col border border-cyber-border/30">
-                    <span className="text-cyber-yellow font-bold px-1 py-0.5 bg-cyber-yellow/5">{ch}</span>
-                    <span className="text-cyber-green px-1 py-0.5">{shifted}</span>
+                  <div key={ch} className="flex items-center justify-center gap-1 py-1 px-1 bg-cyber-darker/60 border border-cyber-border/20 rounded-sm">
+                    <span className="text-cyber-yellow font-bold">{ch}</span>
+                    <span className="text-gray-600 text-[8px]">→</span>
+                    <span className="text-cyber-green font-bold">{decoded}</span>
                   </div>
                 );
               })}
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Score bar */}
       {solved > 0 && (

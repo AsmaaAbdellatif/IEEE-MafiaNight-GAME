@@ -21,10 +21,11 @@ function ToastItem({ toast, onRemove }) {
     // Animate in
     const frameId = requestAnimationFrame(() => setVisible(true));
     // Auto dismiss
+    const duration = toast.type === 'elimination' ? 6000 : (toast.duration || 4000);
     const timer = setTimeout(() => {
       setExiting(true);
       setTimeout(() => onRemove(toast.id), 500);
-    }, toast.duration || 4000);
+    }, duration);
 
     return () => {
       cancelAnimationFrame(frameId);
@@ -35,7 +36,7 @@ function ToastItem({ toast, onRemove }) {
   const typeStyles = {
     night: 'border-cyber-red/60 bg-gradient-to-r from-cyber-red/20 to-cyber-darker text-cyber-red',
     day: 'border-cyber-yellow/60 bg-gradient-to-r from-cyber-yellow/20 to-cyber-darker text-cyber-yellow',
-    elimination: 'border-cyber-red/60 bg-gradient-to-r from-cyber-red/20 to-cyber-darker text-cyber-red',
+    elimination: 'border-cyber-red/80 bg-gradient-to-r from-red-900/40 via-cyber-red/20 to-cyber-darker text-cyber-red shadow-[0_0_30px_rgba(255,51,102,0.3)]',
     protection: 'border-cyber-green/60 bg-gradient-to-r from-cyber-green/20 to-cyber-darker text-cyber-green',
     info: 'border-cyber-blue/60 bg-gradient-to-r from-cyber-blue/20 to-cyber-darker text-cyber-blue',
     voting: 'border-cyber-blue/60 bg-gradient-to-r from-cyber-blue/20 to-cyber-darker text-cyber-blue',
@@ -58,9 +59,12 @@ function ToastItem({ toast, onRemove }) {
         }
       `}
     >
-      <p className="text-sm font-bold tracking-wide">{toast.title}</p>
+      {toast.type === 'elimination' && (
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyber-red/10 to-transparent animate-scan-line pointer-events-none rounded-lg" />
+      )}
+      <p className={`text-sm font-bold tracking-wide ${toast.type === 'elimination' ? 'font-display animate-glow-pulse' : ''}`}>{toast.title}</p>
       {toast.message && (
-        <p className="text-xs mt-1 opacity-75 line-clamp-2">{toast.message}</p>
+        <p className={`text-xs mt-1 opacity-75 line-clamp-2 ${toast.type === 'elimination' ? 'font-cyber' : ''}`}>{toast.message}</p>
       )}
     </div>
   );

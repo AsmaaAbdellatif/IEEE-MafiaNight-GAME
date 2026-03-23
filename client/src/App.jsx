@@ -216,8 +216,11 @@ export default function App() {
     // Eliminations
     socket.on(EVENTS.PLAYER_ELIMINATED, (data) => {
       setEliminationLog(prev => [...prev, data]);
-      addSystemMessage(`☠️ ${data.name} (${data.role}) was eliminated – ${data.reason}`);      try { playElimination(); } catch(e) {}
-      setToasts(prev => [...prev, { id: Date.now() + Math.random(), title: '\u2620\ufe0f Player Eliminated', message: `${data.name} (${data.role})`, type: 'elimination' }]);    });
+      const roleText = data.role ? ` (${data.role})` : '';
+      addSystemMessage(`☠️ ${data.name}${roleText} was eliminated – ${data.reason}`);
+      try { playElimination(); } catch(e) {}
+      setToasts(prev => [...prev, { id: Date.now() + Math.random(), title: '\u2620\ufe0f Player Eliminated', message: `${data.name}${roleText}`, type: 'elimination' }]);
+    });
 
     // Night
     socket.on(EVENTS.INVESTIGATION_RESULT, (data) => {

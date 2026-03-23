@@ -557,13 +557,13 @@ class Room {
       this.log.push({ sprint: this.sprint, phase: 'night', eliminated: result.adminKilled.name, role: result.adminKilled.role });
     }
 
-    // Broadcast hacker-attack night outcome
+    // Broadcast hacker-attack night outcome (role hidden from players)
     if (result.eliminated) {
       broadcast(EVENTS.NIGHT_RESULT, {
-        eliminated: { id: result.eliminated.id, name: result.eliminated.name, role: result.eliminated.role },
-        adminKilled: result.adminKilled ? { id: result.adminKilled.id, name: result.adminKilled.name, role: result.adminKilled.role } : null,
+        eliminated: { id: result.eliminated.id, name: result.eliminated.name },
+        adminKilled: result.adminKilled ? { id: result.adminKilled.id, name: result.adminKilled.name } : null,
         protectionSaved: false,
-        message: `${result.eliminated.name} (${result.eliminated.role}) was eliminated during the night!`,
+        message: `${result.eliminated.name} was eliminated during the night!`,
       });
       this.log.push({ sprint: this.sprint, phase: 'night', eliminated: result.eliminated.name, role: result.eliminated.role });
     } else if (result.protectionSaved) {

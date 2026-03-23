@@ -277,10 +277,14 @@ function renderPage(roomManager) {
     const checkbox = document.getElementById('autoRefresh');
     checkbox.addEventListener('change', () => { autoRefreshEnabled = checkbox.checked; });
 
+    // Extract password from URL for authenticated requests
+    const urlParams = new URLSearchParams(window.location.search);
+    const adminPw = urlParams.get('password') || '';
+
     async function refresh() {
       if (!autoRefreshEnabled) return;
       try {
-        const res = await fetch('/api/admin/rooms');
+        const res = await fetch('/api/admin/rooms?password=' + encodeURIComponent(adminPw));
         const data = await res.json();
         // Update timestamp
         document.getElementById('timestamp').textContent = data.timestamp;
@@ -297,7 +301,7 @@ function renderPage(roomManager) {
     async function skipPhase(code) {
       if (!confirm('Force-skip current phase for room ' + code + '?')) return;
       try {
-        const r = await fetch('/api/admin/skip/' + code, { method: 'POST' });
+        const r = await fetch('/api/admin/skip/' + code + '?password=' + encodeURIComponent(adminPw), { method: 'POST' });
         const d = await r.json();
         if (d.ok) { alert('Phase skipped! New phase: ' + d.newPhase); location.reload(); }
         else alert('Error: ' + d.error);
