@@ -118,7 +118,7 @@ export default function RoleRevealModal({ role, description, fellowHackers, onCl
 
   const roleDisplayName = (role || '').replace('_', ' ').toUpperCase();
   const subtitle = role === ROLES.HACKER ? 'INFILTRATE & CORRUPT' :
-    role === ROLES.ADMIN ? 'PROTECT & REPAIR' :
+    role === ROLES.ADMIN ? 'CHOOSE & PROTECT' :
     role === ROLES.SECURITY_LEAD ? 'INVESTIGATE & EXPOSE' :
     'BUILD & SURVIVE';
 

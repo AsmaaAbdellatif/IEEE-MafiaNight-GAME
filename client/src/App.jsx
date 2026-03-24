@@ -64,6 +64,7 @@ export default function App() {
   const [skipCount, setSkipCount] = useState(0);
   const [totalAliveForSkip, setTotalAliveForSkip] = useState(0);
   const [hasSkipped, setHasSkipped] = useState(false);
+  const [skippedPlayerIds, setSkippedPlayerIds] = useState([]);
   const [individualVotes, setIndividualVotes] = useState({});
 
   // ── Code Files ──
@@ -152,6 +153,7 @@ export default function App() {
       // Reset skip votes on every phase change
       setSkipCount(0);
       setHasSkipped(false);
+      setSkippedPlayerIds([]);
       // Clear night result & hacker votes when night starts (night-first flow)
       // But NOT during night review (hackerInjected) — preserve admin scan state
       if (p === PHASES.NIGHT && !rest.hackerInjected) {
@@ -289,9 +291,10 @@ export default function App() {
     });
 
     // Skip updates
-    socket.on(EVENTS.SKIP_UPDATE, ({ skipCount: sc, totalAlive: ta }) => {
+    socket.on(EVENTS.SKIP_UPDATE, ({ skipCount: sc, totalAlive: ta, skippedPlayerIds: ids }) => {
       setSkipCount(sc);
       setTotalAliveForSkip(ta);
+      setSkippedPlayerIds(ids || []);
     });
 
     // Code files
@@ -547,6 +550,7 @@ export default function App() {
         totalAliveForSkip={totalAliveForSkip}
         hasSkipped={hasSkipped}
         onSkipPhase={skipPhase}
+        skippedPlayerIds={skippedPlayerIds}
         // Code
         codeFiles={codeFiles}
         onSecurityScan={securityScan}

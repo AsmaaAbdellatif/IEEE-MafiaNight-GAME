@@ -137,8 +137,8 @@ class RoleEngine {
       return { gameOver: true, winner: 'developers', reason: 'All Hackers have been eliminated! The codebase is secure.' };
     }
 
-    // Hackers > non-hackers → hackers win
-    if (hackers.length > nonHackers.length) {
+    // Hackers >= non-hackers → hackers win (equal numbers = hackers have control)
+    if (hackers.length >= nonHackers.length) {
       return { gameOver: true, winner: 'hackers', reason: 'Hackers have taken over the system! The codebase is compromised.' };
     }
 

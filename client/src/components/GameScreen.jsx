@@ -50,6 +50,7 @@ export default function GameScreen({
   totalAliveForSkip,
   hasSkipped,
   onSkipPhase,
+  skippedPlayerIds,
   // Code
   codeFiles,
   onSecurityScan,
@@ -169,6 +170,7 @@ export default function GameScreen({
             fellowHackers={fellowHackers}
             defenders={defenders}
             voteTally={voteTally}
+            skippedPlayerIds={skippedPlayerIds}
           />
 
           {/* Night result notification */}
@@ -289,16 +291,20 @@ export default function GameScreen({
                         Select the player you believe was targeted by hackers. If their code is corrupted, you'll get a chance to fix it.
                       </p>
                       <div className="grid grid-cols-2 gap-3">
-                        {alivePlayers.filter(p => p.id !== myId).map((p, idx) => (
+                        {alivePlayers.map((p, idx) => (
                           <button
                             key={p.id}
                             onClick={() => handleAdminProtectSelect(p.id)}
-                            className="flex flex-col items-center gap-2 p-4 rounded-lg border border-green-500/30 bg-[#121826] text-green-300 hover:bg-[#1a2838] hover:border-green-400/60 hover:scale-105 hover:shadow-[0_0_15px_rgba(0,255,136,0.15)] transition-all animate-slide-up"
+                            className={`flex flex-col items-center gap-2 p-4 rounded-lg border bg-[#121826] hover:scale-105 transition-all animate-slide-up ${
+                              p.id === myId
+                                ? 'border-cyan-500/30 text-cyan-300 hover:bg-[#1a2838] hover:border-cyan-400/60 hover:shadow-[0_0_15px_rgba(0,200,255,0.15)]'
+                                : 'border-green-500/30 text-green-300 hover:bg-[#1a2838] hover:border-green-400/60 hover:shadow-[0_0_15px_rgba(0,255,136,0.15)]'
+                            }`}
                             style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}
                           >
                             <img src={`https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(p.name)}`} alt={p.name} className="w-12 h-12 rounded-full bg-black/40 border border-green-500/30" />
-                            <span className="font-semibold text-sm font-cyber">{p.name}</span>
-                            <span className="text-[10px] text-green-400/70 flex items-center gap-1"><Shield size={10} /> Protect</span>
+                            <span className="font-semibold text-sm font-cyber">{p.name}{p.id === myId ? ' (You)' : ''}</span>
+                            <span className={`text-[10px] flex items-center gap-1 ${p.id === myId ? 'text-cyan-400/70' : 'text-green-400/70'}`}><Shield size={10} /> Protect</span>
                           </button>
                         ))}
                       </div>
@@ -319,8 +325,11 @@ export default function GameScreen({
                   )}
 
                   {adminProtectChoice && adminScanResult && !adminScanResult.corrupted && (
-                    <div className="p-3 rounded-lg border border-green-500/30 bg-green-900/10 text-green-400 text-sm text-center animate-fade-in flex items-center justify-center gap-2">
-                      <CheckCircle size={16} /> No corruption found in {adminScanResult.targetName}'s code. The night passes safely.
+                    <div className="p-4 rounded-lg border border-green-500/30 bg-green-900/10 text-green-400 text-sm text-center animate-fade-in space-y-3">
+                      <div className="flex items-center justify-center gap-2">
+                        <CheckCircle size={16} /> No corruption found in {adminScanResult.targetName}'s code.
+                      </div>
+                      <p className="text-xs text-gray-500 font-cyber">Your turn is complete. Waiting for other roles to finish...</p>
                     </div>
                   )}
 
@@ -404,6 +413,7 @@ export default function GameScreen({
                           ? `Wrong fix chosen! ${adminRepairResult.targetName} has been eliminated due to the failed repair attempt.`
                           : 'No corrupted code was available to repair.'}
                       </p>
+                      <p className="text-xs text-gray-500 font-cyber">Waiting for other roles to finish...</p>
                     </div>
                   )}
 
@@ -435,13 +445,16 @@ export default function GameScreen({
                   </div>
                   {/* Scan result code - independent box below all players */}
                   {securityScanResult && Array.isArray(securityScanResult.codeFiles) && securityScanResult.codeFiles.length > 0 && (
-                    <div className="rounded border border-gray-700/60 bg-[#0d1117] overflow-hidden">
-                      <div className="px-2 py-1 border-b border-gray-700/60 text-[10px] font-mono text-cyan-300">
-                        {securityScanResult.codeFiles[0].name}
+                    <div className="space-y-3">
+                      <div className="rounded border border-gray-700/60 bg-[#0d1117] overflow-hidden">
+                        <div className="px-2 py-1 border-b border-gray-700/60 text-[10px] font-mono text-cyan-300">
+                          {securityScanResult.codeFiles[0].name}
+                        </div>
+                        <pre className="m-0 p-2 text-[11px] leading-5 text-gray-300 font-mono whitespace-pre-wrap break-words">
+                          {securityScanResult.codeFiles[0].code}
+                        </pre>
                       </div>
-                      <pre className="m-0 p-2 text-[11px] leading-5 text-gray-300 font-mono whitespace-pre-wrap break-words">
-                        {securityScanResult.codeFiles[0].code}
-                      </pre>
+                      <p className="text-xs text-gray-500 font-cyber text-center">Your scan is complete. Waiting for other roles to finish...</p>
                     </div>
                   )}
                 </div>

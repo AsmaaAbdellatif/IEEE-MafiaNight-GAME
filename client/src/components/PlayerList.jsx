@@ -1,13 +1,13 @@
 import React from 'react';
 import { ROLES } from '../shared/constants';
 import { getAvatarForPlayer, getAvatarForRole } from '../utils/avatars';
-import { Bug, Wrench, Search, Code2, Crown, Skull, XCircle } from 'lucide-react';
+import { Bug, Wrench, Search, Code2, Crown, Skull, XCircle, SkipForward } from 'lucide-react';
 
 /**
  * PlayerList – Displays alive / dead players with role badges.
  * Shows your own role, and if you're a Hacker, highlights fellow hackers.
  */
-export default function PlayerList({ alivePlayers, deadPlayers, myId, myRole, fellowHackers, defenders, voteTally }) {
+export default function PlayerList({ alivePlayers, deadPlayers, myId, myRole, fellowHackers, defenders, voteTally, skippedPlayerIds }) {
   const roleIcons = {
     [ROLES.DEVELOPER]: Code2,
     [ROLES.HACKER]: Bug,
@@ -22,8 +22,9 @@ export default function PlayerList({ alivePlayers, deadPlayers, myId, myRole, fe
     [ROLES.ADMIN]: 'text-yellow-400',
   };
 
-  // Build set of fellow hacker IDs for quick lookup
+  // Build sets for quick lookup
   const hackerIds = new Set((fellowHackers || []).map(h => h.id || h));
+  const skipperIds = new Set(skippedPlayerIds || []);
   const iAmHacker = myRole === ROLES.HACKER;
 
   // Determine visible role for a player
@@ -81,6 +82,11 @@ export default function PlayerList({ alivePlayers, deadPlayers, myId, myRole, fe
                 {visibleRole && <RoleBadge role={visibleRole} />}
                 {voteCount > 0 && (
                   <span className="text-xs text-cyber-red font-bold">{voteCount} votes</span>
+                )}
+                {skipperIds.has(p.id) && (
+                  <span className="flex items-center gap-0.5 text-[10px] text-cyber-yellow bg-cyber-yellow/10 rounded px-1.5 py-0.5 font-bold">
+                    <SkipForward size={9} /> SKIP
+                  </span>
                 )}
               </span>
             </div>

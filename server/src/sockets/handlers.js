@@ -291,6 +291,7 @@ function registerHandlers(io, socket) {
     broadcastToRoom(room.id, EVENTS.SKIP_UPDATE, {
       skipCount: room.skipVotes.size,
       totalAlive: realAlive,
+      skippedPlayerIds: [...room.skipVotes],
     });
 
     // All real alive players must vote to skip (unanimous consensus)
@@ -508,7 +509,14 @@ function registerHandlers(io, socket) {
       ...clientDetails,
     });
 
-    // Admin manually finishes sunrise via FINISH_SUNRISE — don't auto-mark done here
+    // If no corruption found, auto-mark admin as done (nothing to repair)
+    if (!details.corrupted) {
+      room.markSunriseDone(
+        ROLES.ADMIN,
+        (event, data) => broadcastToRoom(room.id, event, data),
+        (playerId, event, data) => io.to(playerId).emit(event, data)
+      );
+    }
   });
 
   /* ──────────────────────────────────────────
@@ -682,7 +690,7 @@ function getRoleDescription(role) {
     case ROLES.SECURITY_LEAD:
       return 'You are the QA. Each night, browse up to 2 players\' code looking for suspicious function names. If you find functions like exploit_buffer or rootkit_load — that player is a Hacker!';
     case ROLES.ADMIN:
-      return 'You are the Admin. At sunrise, you\'ll automatically receive the attacked code. Your job is to fix the corrupted code by choosing the correct repair. ONE try only: correct fix → you protect that player; wrong fix → that player is eliminated!';
+      return 'You are the Admin. At sunrise, choose a player to protect. If that player was attacked by hackers, their corrupted code will appear for you to fix. Pick the correct repair to save them — ONE try only!';
     default:
       return '';
   }
